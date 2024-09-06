@@ -52,29 +52,32 @@ class Parentmenu {
           FROM parentmenu_master WHERE tenantId = ${tenantId}`
     }
 
-    static findAll(tenantId) {
+    static async findAll(tenantId) {
         let sql = this.findAllParentMenu(tenantId);
         sql += " ORDER BY display_rank ASC";
-        return db.execute(sql)
+        const [result] = await db.execute(sql);
+        return result
     };
 
-    static findActiveAll(tenantId) {
+    static async findActiveAll(tenantId) {
         let sql = this.findAllParentMenu(tenantId);
         sql += ` AND status =1`
         sql += " ORDER BY menu_name, display_rank ASC";
-        return db.execute(sql)
+        const [result] = await db.execute(sql);
+        return result
     };
 
-    static findById(tenantId, id) {
+    static async findById(tenantId, id) {
         let sql = this.findAllParentMenu(tenantId);
         sql += ` AND id = ${id}`;
-        return db.execute(sql)
+        const [[result]] = await db.execute(sql);
+        return result
     };
 
     static async deleteValidation(parentId) {
-        const [parentResults] = await db.execute(`SELECT COUNT(*) AS count FROM childmenu_master WHERE parent_id = ?`, [parentId]);
+        const [[parentResults]] = await db.execute(`SELECT COUNT(*) AS count FROM childmenu_master WHERE parent_id = ?`, [parentId]);
 
-        if (parentResults[0].count > 0) {
+        if (parentResults.count > 0) {
             return false
         }
         return true

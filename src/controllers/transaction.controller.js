@@ -44,7 +44,7 @@ const CreateTransaction = async (req, res) => {
         const saveTransaction = await transaction.save();
 
         if (details && details.length > 0) {
-            const transactionDetails = details.map(detail => new TransactionDetails(tenantId, saveTransaction[0].insertId, transaction_type, detail.subCategoryId, detail.amount, detail.description, companyId, userId, userId));
+            const transactionDetails = details.map(detail => new TransactionDetails(tenantId, saveTransaction.insertId, transaction_type, detail.subCategoryId, detail.amount, detail.description, companyId, userId, userId));
 
             await TransactionDetails.save(transactionDetails);
         }
@@ -73,12 +73,12 @@ const ListTransaction = async (req, res, next) => {
 
         let transactions = await Transaction.findAll(tenantId, companyId, startDate, endDate, type, paymentTypeIds, clientTypeIds, categoryTypeIds, accountIds, groupTypeIds, accountTypeIds, limit, fromAmount, toAmount);
 
-        transactions[0] = transactionSearch(q, transactions[0]);
+        transactions = transactionSearch(q, transactions);
 
         let responseData = {
             success: true,
             message: 'Transaction list has been fetched Successfully.',
-            data: transactions[0]
+            data: transactions
         };
 
         res.status(200).json(responseData);
@@ -94,12 +94,12 @@ const getTransactionById = async (req, res, next) => {
     const tenantId = token.decodedToken.tenantId;
     try {
         let Id = req.params.id;
-        let [transaction, _] = await Transaction.findById(tenantId, Id);
+        let transaction = await Transaction.findById(tenantId, Id);
 
         res.status(200).json({
             success: true,
             message: "Transaction Record Successfully",
-            data: transaction[0]
+            data: transaction
         });
     } catch (error) {
         console.log(error);
@@ -117,8 +117,8 @@ const deleteTransaction = async (req, res, next) => {
 
         const transactionDetails = await TransactionDetails.findAllByTransactionId(tenantId, companyId, Id);
 
-        if (transactionDetails.length > 0 && Array.isArray(transactionDetails[0])) {
-            const detailIds = transactionDetails[0].map(detail => detail.id);
+        if (transactionDetails.length > 0 && Array.isArray(transactionDetails)) {
+            const detailIds = transactionDetails.map(detail => detail.id);
 
             if (detailIds.length > 0) {
                 await TransactionDetails.delete(tenantId, companyId, detailIds);
@@ -150,7 +150,7 @@ const updateTransaction = async (req, res, next) => {
         const { transaction_date, transaction_type, payment_type_Id, accountId, amount, description, clientId, details } = req.body;
 
         const transactionId = req.params.id;
-        const findTransaction = await Transaction.findById(tenantId, companyId, transactionId);
+        const findTransaction = await Transaction.findById(tenantId, transactionId);
         if (!findTransaction) {
             throw new Error("The specified Transaction was not found.");
         }
@@ -164,7 +164,7 @@ const updateTransaction = async (req, res, next) => {
         const existingDetailsIds = details.map(detail => detail.id).filter(id => id);
         const existingDetails = await TransactionDetails.findAllByTransactionId(tenantId, companyId, transactionId);
 
-        for (const detail of existingDetails[0]) {
+        for (const detail of existingDetails) {
             if (!existingDetailsIds.includes(detail.id)) {
                 await TransactionDetails.delete(tenantId, companyId, detail.id);
             }

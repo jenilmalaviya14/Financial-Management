@@ -21,14 +21,14 @@ class CompanyAccess {
                 }
 
                 const dataExistsSql = `SELECT * FROM company_master WHERE id = '${companyId}'`;
-                const [dataExistsResult] = await db.execute(dataExistsSql);
+                const [[dataExistsResult]] = await db.execute(dataExistsSql);
 
                 if (dataExistsResult.length === 0) {
                     insertionResults.push({ message: `No existing data for company ID '${companyId}' in company_master.` });
                     continue;
                 }
 
-                const chosenCompanyId = dataExistsResult[0].id;
+                const chosenCompanyId = dataExistsResult.id;
 
                 const chosenCompanyExistsSql = `SELECT * FROM company_access WHERE user_id = '${this.user_id}' AND company_id = '${chosenCompanyId}'`;
                 const [chosenCompanyExistsResult] = await db.execute(chosenCompanyExistsSql);
@@ -64,15 +64,16 @@ class CompanyAccess {
         }
     };
 
-    static findAll(tenantId) {
+    static async findAll(tenantId) {
         let sql = "SELECT *, DATE_SUB(createdOn, INTERVAL 5 HOUR) AS adjusted_createdOn, DATE_SUB(updatedOn, INTERVAL 5 HOUR) AS adjusted_updatedOn FROM company_access";
         if (tenantId) {
             sql += ` WHERE tenantId = '${tenantId}'`;
         }
-        return db.execute(sql)
+        const [result] = await db.execute(sql);
+        return result
     }
 
-    static findAllByCompanyAccess(tenantId, userId) {
+    static async findAllByCompanyAccess(tenantId, userId) {
         let sql = "SELECT ca.*, cm.company_name, cs.default_date_option, cs.fiscal_start_month FROM company_access ca "
         sql += " LEFT JOIN company_master cm ON ca.tenantId = cm.tenantId AND ca.company_id = cm.id"
         sql += " LEFT JOIN company_setting cs ON ca.tenantId = cs.tenantId AND ca.company_id = cs.companyId"
@@ -84,12 +85,14 @@ class CompanyAccess {
             sql += ` AND ca.user_id = '${userId}'`;
         }
         sql += ` ORDER BY cm.company_name`
-        return db.execute(sql)
+        const [result] = await db.execute(sql);
+        return result
     }
 
-    static findById(id) {
+    static async findById(id) {
         let sql = `SELECT * FROM company_access WHERE id = ${id}`;
-        return db.execute(sql)
+        const [[result]] = await db.execute(sql);
+        return result
     }
 
     static delete(id) {

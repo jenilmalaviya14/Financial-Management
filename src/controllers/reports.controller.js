@@ -44,6 +44,21 @@ let reportSearch = (q, report) => {
     }
 };
 
+const calculateTotalsAndPercentages = (dataMap) => {
+    const totals = { totalReceive: 0, totalPayment: 0, balance: 0 };
+    Array.from(dataMap.values()).forEach(item => {
+        totals.totalReceive += item.ReceiveAmount || 0;
+        totals.totalPayment += item.PaidAmount || 0;
+        totals.balance += item.BalanceAmount || 0;
+    });
+
+    Array.from(dataMap.values()).forEach(item => {
+        item.totalReceivePercentage = totals.totalReceive === 0 ? 0 : ((item.ReceiveAmount || 0) / totals.totalReceive) * 100;
+        item.totalPaymentPercentage = totals.totalPayment === 0 ? 0 : ((item.PaidAmount || 0) / totals.totalPayment) * 100;
+        item.balancePercentage = totals.balance === 0 ? 0 : ((item.BalanceAmount || 0) / totals.balance) * 100;
+    });
+};
+
 const ListPaymentReport = async (req, res, next) => {
     const tokenInfo = getDecodeToken(req);
 
@@ -62,10 +77,10 @@ const ListPaymentReport = async (req, res, next) => {
 
         let report = await Report.findAllPayment(tenantId, companyId, startDate, endDate, paymentTypeIds, clientTypeIds, categoryTypeIds, accountIds, groupTypeIds, accountTypeIds, fromAmount, toAmount);
 
-        report[0] = reportSearch(q, report[0]);
+        report = reportSearch(q, report);
 
         const paymentMap = new Map();
-        report[0].forEach(transaction => {
+        report.forEach(transaction => {
             const PaymentId = transaction.payment_type_Id;
             const PaymentName = transaction.payment_type_name;
             const PaidAmount = +(parseFloat(transaction.PaidAmount)).toFixed(2);
@@ -84,10 +99,15 @@ const ListPaymentReport = async (req, res, next) => {
                     PaidAmount,
                     ReceiveAmount,
                     BalanceAmount: +(ReceiveAmount - PaidAmount).toFixed(2),
+                    totalReceivePercentage: 0,
+                    totalPaymentPercentage: 0,
+                    balancePercentage: 0,
                     paymentDetails: [reportTransaction(transaction)]
                 });
             }
         });
+
+        calculateTotalsAndPercentages(paymentMap);
 
         let responseData = {
             success: true,
@@ -132,10 +152,10 @@ const ListClientReport = async (req, res, next) => {
 
         let report = await Report.findAllClient(tenantId, companyId, startDate, endDate, paymentTypeIds, clientTypeIds, categoryTypeIds, accountIds, groupTypeIds, accountTypeIds, fromAmount, toAmount);
 
-        report[0] = reportSearch(q, report[0])
+        report = reportSearch(q, report)
 
         const clientMap = new Map();
-        report[0].filter(x => x.clientId != null).forEach(transaction => {
+        report.filter(x => x.clientId != null).forEach(transaction => {
             const clientId = transaction.clientId;
             const clientName = transaction.clientName;
             const PaidAmount = +(parseFloat(transaction.PaidAmount)).toFixed(2);
@@ -154,10 +174,15 @@ const ListClientReport = async (req, res, next) => {
                     PaidAmount,
                     ReceiveAmount,
                     BalanceAmount: +(ReceiveAmount - PaidAmount).toFixed(2),
+                    totalReceivePercentage: 0,
+                    totalPaymentPercentage: 0,
+                    balancePercentage: 0,
                     paymentDetails: [reportTransaction(transaction)]
                 });
             }
         });
+
+        calculateTotalsAndPercentages(clientMap);
 
         let responseData = {
             success: true,
@@ -202,10 +227,10 @@ const ListCategoryReport = async (req, res, next) => {
 
         let report = await Report.findAllCategory(tenantId, companyId, startDate, endDate, paymentTypeIds, clientTypeIds, categoryTypeIds, accountIds, groupTypeIds, accountTypeIds, fromAmount, toAmount);
 
-        report[0] = reportSearch(q, report[0]);
+        report = reportSearch(q, report);
 
         const clientMap = new Map();
-        report[0].filter(x => x.clientId != null).forEach(transaction => {
+        report.filter(x => x.clientId != null).forEach(transaction => {
             const clientId = transaction.clientId;
             const clientName = transaction.clientName;
             const PaidAmount = +(parseFloat(transaction.PaidAmount)).toFixed(2);
@@ -224,10 +249,15 @@ const ListCategoryReport = async (req, res, next) => {
                     PaidAmount,
                     ReceiveAmount,
                     BalanceAmount: +(ReceiveAmount - PaidAmount).toFixed(2),
+                    totalReceivePercentage: 0,
+                    totalPaymentPercentage: 0,
+                    balancePercentage: 0,
                     paymentDetails: [reportTransaction(transaction)]
                 });
             }
         });
+
+        calculateTotalsAndPercentages(clientMap);
 
         let responseData = {
             success: true,
@@ -272,10 +302,10 @@ const ListAccountReport = async (req, res, next) => {
 
         let report = await Report.findAllAccount(tenantId, companyId, startDate, endDate, paymentTypeIds, clientTypeIds, categoryTypeIds, accountIds, groupTypeIds, accountTypeIds, fromAmount, toAmount);
 
-        report[0] = reportSearch(q, report[0])
+        report = reportSearch(q, report)
 
         const accountMap = new Map();
-        report[0].forEach(transaction => {
+        report.forEach(transaction => {
             const accountId = transaction.accountId;
             const accountName = transaction.account_name;
             const PaidAmount = +(parseFloat(transaction.PaidAmount)).toFixed(2);
@@ -294,10 +324,16 @@ const ListAccountReport = async (req, res, next) => {
                     PaidAmount,
                     ReceiveAmount,
                     BalanceAmount: +(ReceiveAmount - PaidAmount).toFixed(2),
+                    totalReceivePercentage: 0,
+                    totalPaymentPercentage: 0,
+                    balancePercentage: 0,
                     accounts: [reportTransaction(transaction)]
                 });
             }
         });
+
+        calculateTotalsAndPercentages(accountMap);
+
 
         const responseData = {
             success: true,
@@ -336,10 +372,10 @@ const ListGroupReport = async (req, res, next) => {
 
         let report = await Report.findAllGroup(tenantId, companyId, startDate, endDate, paymentTypeIds, clientTypeIds, categoryTypeIds, accountIds, groupTypeIds, accountTypeIds, fromAmount, toAmount);
 
-        report[0] = reportSearch(q, report[0])
+        report = reportSearch(q, report)
 
         const groupMap = new Map();
-        report[0].forEach(transaction => {
+        report.forEach(transaction => {
             const GroupId = transaction.group_name_Id;
             const GroupName = transaction.account_group_name;
             const PaidAmount = +(parseFloat(transaction.PaidAmount)).toFixed(2);
@@ -358,10 +394,15 @@ const ListGroupReport = async (req, res, next) => {
                     PaidAmount,
                     ReceiveAmount,
                     BalanceAmount: +(ReceiveAmount - PaidAmount).toFixed(2),
+                    totalReceivePercentage: 0,
+                    totalPaymentPercentage: 0,
+                    balancePercentage: 0,
                     groupDetails: [reportTransaction(transaction)]
                 });
             }
         });
+
+        calculateTotalsAndPercentages(groupMap);
 
         let responseData = {
             success: true,
@@ -406,12 +447,12 @@ const ListCompanyReport = async (req, res, next) => {
 
         let report = await Report.findAllCompany(tenantId, companyId, startDate, endDate, paymentTypeIds, clientTypeIds, categoryTypeIds, accountIds, groupTypeIds, accountTypeIds, fromAmount, toAmount);
 
-        report[0] = reportSearch(q, report[0])
+        report = reportSearch(q, report)
 
         let responseData = {
             success: true,
             message: 'Company Report list has been fetched Successfully.',
-            data: report[0]
+            data: report
         };
 
         res.status(200).json(responseData);
@@ -439,10 +480,10 @@ const ListAccountTypeReport = async (req, res, next) => {
 
         let report = await Report.findAllAccountType(tenantId, companyId, startDate, endDate, paymentTypeIds, clientTypeIds, categoryTypeIds, accountIds, groupTypeIds, accountTypeIds, fromAmount, toAmount);
 
-        report[0] = reportSearch(q, report[0]);
+        report = reportSearch(q, report);
 
         const accountTypeMap = new Map();
-        report[0].forEach(transaction => {
+        report.forEach(transaction => {
             const accountTypeId = transaction.account_type_Id;
             const accountTypeName = transaction.account_type_name;
             const PaidAmount = +(parseFloat(transaction.PaidAmount)).toFixed(2);
@@ -461,10 +502,15 @@ const ListAccountTypeReport = async (req, res, next) => {
                     PaidAmount,
                     ReceiveAmount,
                     BalanceAmount: +(ReceiveAmount - PaidAmount).toFixed(2),
+                    totalReceivePercentage: 0,
+                    totalPaymentPercentage: 0,
+                    balancePercentage: 0,
                     paymentDetails: [reportTransaction(transaction)]
                 });
             }
         });
+
+        calculateTotalsAndPercentages(accountTypeMap);
 
         let responseData = {
             success: true,
@@ -598,16 +644,16 @@ const ListMonthlyReport = async (req, res, next) => {
         const { tenantId } = tokenInfo.decodedToken;
         const { startDate, endDate, paymentTypeIds, clientTypeIds, categoryTypeIds, accountIds, groupTypeIds, accountTypeIds, fromAmount, toAmount } = req.body;
 
-        let companysetting = await CompanySetting.findAll(tenantId, companyId)
+        let [companysetting] = await CompanySetting.findAll(tenantId, companyId)
         let fiscalStartMonth = 4
-        if (companysetting[0].length > 0) {
-            fiscalStartMonth = companysetting[0][0].fiscal_start_month
+        if (companysetting.length > 0) {
+            fiscalStartMonth = companysetting.fiscal_start_month
         }
 
         let report = await Report.findAllMonthly(tenantId, companyId, startDate, endDate, paymentTypeIds, clientTypeIds, categoryTypeIds, accountIds, groupTypeIds, accountTypeIds, fromAmount, toAmount);
 
         const accountTypeMap = new Map();
-        report[0].forEach(transaction => {
+        report.forEach(transaction => {
             const PaidAmount = +(parseFloat(transaction.PaidAmount)).toFixed(2);
             const ReceiveAmount = +(parseFloat(transaction.ReceiveAmount)).toFixed(2);
             const fiscalData = getDateMonth(transaction.transaction_date)
@@ -627,10 +673,15 @@ const ListMonthlyReport = async (req, res, next) => {
                     PaidAmount,
                     ReceiveAmount,
                     BalanceAmount: +(ReceiveAmount - PaidAmount).toFixed(2),
+                    totalReceivePercentage: 0,
+                    totalPaymentPercentage: 0,
+                    balancePercentage: 0,
                     paymentDetails: [reportTransaction(transaction)]
                 });
             }
         });
+
+        calculateTotalsAndPercentages(accountTypeMap);
 
         let responseData = {
             success: true,
@@ -700,18 +751,18 @@ const ListQuarterlyReport = async (req, res, next) => {
         const { tenantId } = tokenInfo.decodedToken;
         const { startDate, endDate, paymentTypeIds, clientTypeIds, categoryTypeIds, accountIds, groupTypeIds, accountTypeIds, fromAmount, toAmount } = req.body;
 
-        let companysetting = await CompanySetting.findAll(tenantId, companyId)
+        let [companysetting] = await CompanySetting.findAll(tenantId, companyId)
         let fiscalStartMonth = 4
-        if (companysetting[0].length > 0) {
-            fiscalStartMonth = companysetting[0][0].fiscal_start_month
+        if (companysetting.length > 0) {
+            fiscalStartMonth = companysetting.fiscal_start_month
         }
 
         let report = await Report.findAllQuarterly(tenantId, companyId, startDate, endDate, paymentTypeIds, clientTypeIds, categoryTypeIds, accountIds, groupTypeIds, accountTypeIds, fromAmount, toAmount);
 
-        report[0] = reportSearch(q, report[0])
+        report = reportSearch(q, report)
 
         const accountTypeMap = new Map();
-        report[0].forEach(transaction => {
+        report.forEach(transaction => {
             const PaidAmount = +(parseFloat(transaction.PaidAmount)).toFixed(2);
             const ReceiveAmount = +(parseFloat(transaction.ReceiveAmount)).toFixed(2);
             const fiscalData = getFiscalAndFrequencyYearMonth(transaction.transaction_date, fiscalStartMonth, 'quarterly');
@@ -731,10 +782,15 @@ const ListQuarterlyReport = async (req, res, next) => {
                     PaidAmount,
                     ReceiveAmount,
                     BalanceAmount: +(ReceiveAmount - PaidAmount).toFixed(2),
+                    totalReceivePercentage: 0,
+                    totalPaymentPercentage: 0,
+                    balancePercentage: 0,
                     paymentDetails: [reportTransaction(transaction)]
                 });
             }
         });
+
+        calculateTotalsAndPercentages(accountTypeMap);
 
         let responseData = {
             success: true,
@@ -777,18 +833,18 @@ const ListSemiannualReport = async (req, res, next) => {
         const { tenantId } = tokenInfo.decodedToken;
         const { startDate, endDate, paymentTypeIds, clientTypeIds, categoryTypeIds, accountIds, groupTypeIds, accountTypeIds, fromAmount, toAmount } = req.body;
 
-        let companysetting = await CompanySetting.findAll(tenantId, companyId)
+        let [companysetting] = await CompanySetting.findAll(tenantId, companyId)
         let fiscalStartMonth = 4
-        if (companysetting[0].length > 0) {
-            fiscalStartMonth = companysetting[0][0].fiscal_start_month
+        if (companysetting.length > 0) {
+            fiscalStartMonth = companysetting.fiscal_start_month
         }
 
         let report = await Report.findAllSemiannual(tenantId, companyId, startDate, endDate, paymentTypeIds, clientTypeIds, categoryTypeIds, accountIds, groupTypeIds, accountTypeIds, fromAmount, toAmount);
 
-        report[0] = reportSearch(q, report[0])
+        report = reportSearch(q, report)
 
         const accountTypeMap = new Map();
-        report[0].forEach(transaction => {
+        report.forEach(transaction => {
             const PaidAmount = +(parseFloat(transaction.PaidAmount)).toFixed(2);
             const ReceiveAmount = +(parseFloat(transaction.ReceiveAmount)).toFixed(2);
             const fiscalData = getFiscalAndFrequencyYearMonth(transaction.transaction_date, fiscalStartMonth, 'semiannual');
@@ -808,10 +864,15 @@ const ListSemiannualReport = async (req, res, next) => {
                     PaidAmount,
                     ReceiveAmount,
                     BalanceAmount: +(ReceiveAmount - PaidAmount).toFixed(2),
+                    totalReceivePercentage: 0,
+                    totalPaymentPercentage: 0,
+                    balancePercentage: 0,
                     paymentDetails: [reportTransaction(transaction)]
                 });
             }
         });
+
+        calculateTotalsAndPercentages(accountTypeMap);
 
         let responseData = {
             success: true,
@@ -854,18 +915,17 @@ const ListAnnuallyReport = async (req, res, next) => {
         const { tenantId } = tokenInfo.decodedToken;
         const { startDate, endDate, paymentTypeIds, clientTypeIds, categoryTypeIds, accountIds, groupTypeIds, accountTypeIds, fromAmount, toAmount } = req.body;
 
-        let companysetting = await CompanySetting.findAll(tenantId, companyId)
+        let [companysetting] = await CompanySetting.findAll(tenantId, companyId)
         let fiscalStartMonth = 4
-        if (companysetting[0].length > 0) {
-            fiscalStartMonth = companysetting[0][0].fiscal_start_month
+        if (companysetting.length > 0) {
+            fiscalStartMonth = companysetting.fiscal_start_month
         }
 
         let report = await Report.findAllAnnually(tenantId, companyId, startDate, endDate, paymentTypeIds, clientTypeIds, categoryTypeIds, accountIds, groupTypeIds, accountTypeIds, fromAmount, toAmount);
-
-        report[0] = reportSearch(q, report[0])
+        report = reportSearch(q, report)
 
         const accountTypeMap = new Map();
-        report[0].forEach(transaction => {
+        report.forEach(transaction => {
             const PaidAmount = +(parseFloat(transaction.PaidAmount)).toFixed(2);
             const ReceiveAmount = +(parseFloat(transaction.ReceiveAmount)).toFixed(2);
             const fiscalData = getFiscalAndFrequencyYearMonth(transaction.transaction_date, fiscalStartMonth, 'annually');
@@ -885,10 +945,15 @@ const ListAnnuallyReport = async (req, res, next) => {
                     PaidAmount,
                     ReceiveAmount,
                     BalanceAmount: +(ReceiveAmount - PaidAmount).toFixed(2),
+                    totalReceivePercentage: 0,
+                    totalPaymentPercentage: 0,
+                    balancePercentage: 0,
                     paymentDetails: [reportTransaction(transaction)]
                 });
             }
         });
+
+        calculateTotalsAndPercentages(accountTypeMap);
 
         let responseData = {
             success: true,

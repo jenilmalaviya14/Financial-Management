@@ -13,9 +13,9 @@ const verifyToken = async (req, res, next) => {
                 success: false,
                 message: decoded.message,
             });
-        }
+        };
 
-        const [user, _] = await User.findByEmail(decoded.decodedToken.email);
+        const user = await User.findByEmail(decoded.decodedToken.email);
 
         if (!user) {
             return res.status(401).json({
@@ -24,7 +24,7 @@ const verifyToken = async (req, res, next) => {
             });
         }
 
-        req.user = user[0];
+        req.user = user;
         next();
     } catch (error) {
         if (error instanceof jwt.TokenExpiredError) {

@@ -76,8 +76,8 @@ class User {
                 '${this.roleId}',
                 '1'
             )`;
-            const tmp = await db.execute(sql);
-            return tmp;
+            const [result] = await db.execute(sql);
+            return result
 
         } catch (error) {
             throw error;
@@ -92,31 +92,35 @@ class User {
         let sql = this.getUser(tenantId)
         sql += ` GROUP BY u.id`;
         sql += ` ORDER BY u.fullname ASC, u.id`;
-        return db.execute(sql);
+        const [result] = await db.execute(sql);
+        return result
     }
 
-    static findActiveAll(tenantId) {
+    static async findActiveAll(tenantId) {
         let sql = this.getUser(tenantId)
         sql += ` GROUP BY u.id`;
         sql += ` ORDER BY u.fullname ASC`;
-        return db.execute(sql);
+        const [result] = await db.execute(sql);
+        return result
     }
 
-    static findById(tenantId, id) {
+    static async findById(tenantId, id) {
         let sql = this.getUser(tenantId)
         sql += ` AND u.id = ${id}`
         sql += ' GROUP BY u.id';
-        return db.execute(sql);
+        const [[result]] = await db.execute(sql);
+        return result
     }
 
-    static findOne(tenantId, id) {
+    static async findOne(tenantId, id) {
         let sql = this.getUser(tenantId)
         sql += ` AND u.id = ${id}`
         sql += ' GROUP BY u.id';
-        return db.execute(sql);
+        const [[result]] = await db.execute(sql);
+        return result
     }
 
-    static findByAdmin(tenantId, roleName) {
+    static async findByAdmin(tenantId, roleName) {
         let sql = `SELECT u.*,
                    GROUP_CONCAT(c.company_name ORDER BY c.company_name ASC) AS companyNames
                 FROM user_master u
@@ -126,17 +130,20 @@ class User {
                 WHERE u.tenantId = ${tenantId}
                 AND rm.roleName = '${roleName}'`;
 
-        return db.execute(sql);
+        const [[result]] = await db.execute(sql);
+        return result
     }
 
-    static findByEmail(email) {
+    static async findByEmail(email) {
         let sql = `SELECT * FROM user_master WHERE email = '${email}'`;
-        return db.execute(sql);
+        const [[result]] = await db.execute(sql);
+        return result
     }
 
-    static delete(id) {
+    static async delete(id) {
         let sql = `DELETE FROM user_master WHERE id = ${id}`;
-        return db.execute(sql)
+        const [result] = await db.execute(sql);
+        return result
     }
 
     async update(id, profile_image_filename) {
@@ -226,4 +233,5 @@ class User {
         return db.execute(sql);
     };
 };
+
 module.exports = User

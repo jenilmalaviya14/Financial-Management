@@ -74,8 +74,8 @@ class Role {
                 AND rolename = '${this.rolename}'
                 AND id != '${this.roleId}'
             `;
-            const [rows] = await db.execute(sql);
-            return rows[0].count === 0;
+            const [[rows]] = await db.execute(sql);
+            return rows.count === 0;
         } catch (error) {
             throw error;
         }
@@ -86,16 +86,18 @@ class Role {
         return db.execute(sql);
     }
 
-    static findAll(tenantId) {
+    static async findAll(tenantId) {
         let sql = this.getAllRoles(tenantId)
         sql += `  ORDER BY rolename ASC;`;
-        return db.execute(sql)
+        const [result] = await db.execute(sql);
+        return result
     }
 
-    static findActiveAll(tenantId) {
+    static async findActiveAll(tenantId) {
         let sql = this.getAllRoles(tenantId)
         sql += ` AND status = 1`;
-        return db.execute(sql)
+        const [result] = await db.execute(sql);
+        return result
     }
 
     static async isThisSuperAdminRole(tenantId, roleId) {
@@ -105,9 +107,9 @@ class Role {
                 FROM role_master
                 WHERE tenantId = ${tenantId} AND id = ${roleId} AND rolename = 'SuperAdmin'
             `;
-        const [toSuperAdminResults] = await db.execute(sql);
+        const [[toSuperAdminResults]] = await db.execute(sql);
 
-        if (toSuperAdminResults[0].count > 0) {
+        if (toSuperAdminResults.count > 0) {
             return true
         }
         return false
@@ -116,7 +118,8 @@ class Role {
     static async findById(tenantId, id) {
         let sql = this.getAllRoles(tenantId)
         sql += `AND id = ${id}`;
-        return await db.execute(sql)
+        const [[result]] = await db.execute(sql);
+        return result
     }
 
     static delete(tenantId, roleId) {

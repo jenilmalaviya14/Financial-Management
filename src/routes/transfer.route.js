@@ -5,31 +5,31 @@ const router = express.Router();
 
 
 router.post(
-    "/create-transfer",
+    "/transfer/create-transfer",
     auth.verifyToken,
     Transfercontroller.CreateTransfer
 );
 
 router.post(
-    "/list-transfer",
+    "/transfer/list-transfer",
     auth.verifyToken,
     Transfercontroller.ListTransfer
 );
 
 router.get(
-    "/list-transfer/:id",
+    "/transfer/list-transfer/:id",
     auth.verifyToken,
     Transfercontroller.getTransferById
 );
 
 router.delete(
-    "/delete-transfer/:id",
+    "/transfer/delete-transfer/:id",
     auth.verifyToken,
     Transfercontroller.deleteTransfer
 );
 
 router.put(
-    "/update-transfer/:id",
+    "/transfer/update-transfer/:id",
     auth.verifyToken,
     Transfercontroller.updateTransfer
 );

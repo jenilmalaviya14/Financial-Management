@@ -58,23 +58,23 @@ const ListChildmenu = async (req, res, next) => {
         const { q = '', id } = req.query;
 
         if (id) {
-            const childmenu = await Childmenu.findById(id);
+            const childmenu = await Childmenu.findById(tenantId, id);
 
-            if (childmenu[0].length === 0) {
+            if (childmenu.length === 0) {
                 return res.status(404).json({ success: false, message: 'The specified Childmenu was not found.' });
             }
 
-            return res.status(200).json({ success: true, message: 'Childmenu found', data: childmenu[0][0] });
+            return res.status(200).json({ success: true, message: 'Childmenu found', data: childmenu });
         }
 
-        const childmenuResult = await Childmenu.findAll(tenantId);
+        let childmenuResult = await Childmenu.findAll(tenantId);
 
-        childmenuResult[0] = childmenuResultSearch(q, childmenuResult[0]);
+        childmenuResult = childmenuResultSearch(q, childmenuResult);
 
         let responseData = {
             success: true,
             message: 'Childmenu list has been fetched Successfully.',
-            data: childmenuResult[0]
+            data: childmenuResult
         };
 
         responseData.data = responseData.data.map(childmenu => {
@@ -96,23 +96,23 @@ const ActiveChildmenu = async (req, res, next) => {
         const { q = '', id } = req.query;
 
         if (id) {
-            const childmenu = await Childmenu.findById(id);
+            const childmenu = await Childmenu.findById(tenantId, id);
 
-            if (childmenu[0].length === 0) {
+            if (childmenu.length === 0) {
                 return res.status(404).json({ success: false, message: 'The specified Childmenu was not found.' });
             }
 
-            return res.status(200).json({ success: true, message: 'Childmenu found', data: childmenu[0][0] });
+            return res.status(200).json({ success: true, message: 'Childmenu found', data: childmenu });
         }
 
-        const childmenuResult = await Childmenu.findActiveAll(tenantId);
+        let childmenuResult = await Childmenu.findActiveAll(tenantId);
 
-        childmenuResult[0] = childmenuResultSearch(q, childmenuResult[0]);
+        childmenuResult = childmenuResultSearch(q, childmenuResult);
 
         let responseData = {
             success: true,
             message: 'Childmenu list has been fetched Successfully.',
-            data: childmenuResult[0]
+            data: childmenuResult
         };
 
         responseData.data = responseData.data.map(childmenu => {
@@ -133,12 +133,12 @@ const getChildmenuById = async (req, res, next) => {
     const tenantId = token.decodedToken.tenantId;
     try {
         let Id = req.params.id;
-        let [childmenu, _] = await Childmenu.findById(tenantId, Id);
+        let childmenu = await Childmenu.findById(tenantId, Id);
 
         res.status(200).json({
             success: true,
             message: "Childmenu Record Successfully",
-            data: childmenu[0]
+            data: childmenu
         });
     } catch (error) {
         console.log(error);
@@ -184,7 +184,7 @@ const updateChildmenu = async (req, res, next) => {
             return res.status(400).json({ success: false, message: "ID parameter is missing or invalid" });
         }
 
-        let [findchildmenu, _] = await Childmenu.findById(tenantId, Id);
+        let findchildmenu = await Childmenu.findById(tenantId, Id);
         if (!findchildmenu) {
             return res.status(404).json({ success: false, message: "The specified Childmenu was not found." });
         }

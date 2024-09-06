@@ -48,7 +48,8 @@ class Transfer {
                 UTC_TIMESTAMP(),
                 '${this.companyId}'
             )`;
-            return db.execute(sql)
+            const [result] = await db.execute(sql);
+            return result
 
         } catch (error) {
             throw error;
@@ -65,12 +66,12 @@ class Transfer {
             sql = `CALL transfer(?, ?, ?, ?, ?, ?, ?, ?, ?)`;
             params = [tenantId, companyId, startDate, endDate, paymentTypeIdsString, accountTypeIdsString, limit || 95, fromAmount, toAmount];
 
-            const [result, _] = await db.execute(sql, params, { nullUndefined: true });
+            const [[result, _]] = await db.execute(sql, params, { nullUndefined: true });
 
-            for (let i = 0; i < result[0].length; i++) {
-                const transactionId = result[0][i].transfer_id;
+            for (let i = 0; i < result.length; i++) {
+                const transactionId = result[i].transfer_id;
                 const details = await TransactionDetails.findAllByTransactionId(tenantId, companyId, transactionId);
-                result[0][i].details = details[0];
+                result[i].details = details;
             }
 
             return result;
@@ -81,10 +82,12 @@ class Transfer {
 
     };
 
-    static findById(tenantId, id) {
+    static async findById(tenantId, id) {
         let sql = `SELECT * FROM transfer WHERE tenantId = ${tenantId} AND transfer_id = ${id}`;
-        return db.execute(sql)
+        const [result] = await db.execute(sql);
+        return result
     }
+
     static delete(tenantId, id) {
         let sql = `DELETE FROM transfer WHERE tenantId = ${tenantId} AND transfer_id = ${id}`;
         return db.execute(sql)

@@ -5,37 +5,37 @@ const router = express.Router();
 
 
 router.post(
-    "/create-childmenu",
+    "/childmenu/create-childmenu",
     auth.verifyToken,
     Childmenucontroller.CreateChildmenu
 );
 
 router.get(
-    "/list-childmenu",
+    "/childmenu/list-childmenu",
     auth.verifyToken,
     Childmenucontroller.ListChildmenu
 );
 
 router.get(
-    "/active-childmenu",
+    "/childmenu/active-childmenu",
     auth.verifyToken,
     Childmenucontroller.ActiveChildmenu
 );
 
 router.get(
-    "/list-childmenu/:id",
+    "/childmenu/list-childmenu/:id",
     auth.verifyToken,
     Childmenucontroller.getChildmenuById
 );
 
 router.delete(
-    "/delete-childmenu/:id",
+    "/childmenu/delete-childmenu/:id",
     auth.verifyToken,
     Childmenucontroller.deleteChildmenu
 );
 
 router.put(
-    "/update-childmenu/:id",
+    "/childmenu/update-childmenu/:id",
     auth.verifyToken,
     Childmenucontroller.updateChildmenu
 );

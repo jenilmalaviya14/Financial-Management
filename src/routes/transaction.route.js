@@ -5,31 +5,31 @@ const router = express.Router();
 
 
 router.post(
-    "/create-transaction",
+    "/transaction/create-transaction",
     auth.verifyToken,
     TransactionController.CreateTransaction
 );
 
 router.post(
-    "/list-transaction",
+    "/transaction/list-transaction",
     auth.verifyToken,
     TransactionController.ListTransaction
 );
 
 router.get(
-    "/list-transaction/:id",
+    "/transaction/list-transaction/:id",
     auth.verifyToken,
     TransactionController.getTransactionById
 );
 
 router.delete(
-    "/delete-transaction/:id",
+    "/transaction/delete-transaction/:id",
     auth.verifyToken,
     TransactionController.deleteTransaction
 );
 
 router.put(
-    "/update-transaction/:id",
+    "/transaction/update-transaction/:id",
     auth.verifyToken,
     TransactionController.updateTransaction
 );

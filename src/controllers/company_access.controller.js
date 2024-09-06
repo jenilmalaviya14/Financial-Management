@@ -33,23 +33,23 @@ const ListCreateCompanyAccess = async (req, res, next) => {
         if (id) {
             const companyAccess = await CompanyAccess.findById(id);
 
-            if (companyAccess[0].length === 0) {
+            if (companyAccess.length === 0) {
                 return res.status(404).json({ success: false, message: 'The specified CompanyAccess was not found.' });
             }
 
-            return res.status(200).json({ success: true, message: 'CompanyAccess found', data: menu[0][0] });
+            return res.status(200).json({ success: true, message: 'CompanyAccess found', data: menu });
         }
 
         const companyAccessResult = await CompanyAccess.findAll(token.decodedToken.tenantId);;
         let responseData = {
             success: true,
             message: 'CompanyAccsess list has been fetched Successfully.',
-            data: companyAccessResult[0]
+            data: companyAccessResult
         };
 
         if (q) {
             const queryLowered = q.toLowerCase();
-            const filteredData = companyAccessResult[0].filter(
+            const filteredData = companyAccessResult.filter(
                 menu =>
                     (menu.status.toLowerCase() === "active" && "active".includes(queryLowered))
             );
@@ -81,12 +81,12 @@ const ListCreateCompanyAccess = async (req, res, next) => {
 const getCreateCompanyAccessById = async (req, res, next) => {
     try {
         let Id = req.params.id;
-        let [companyAccess, _] = await CompanyAccess.findById(Id);
+        let companyAccess = await CompanyAccess.findById(Id);
 
         res.status(200).json({
             success: true,
             message: "CompanyAccess Record Successfully",
-            data: companyAccess[0]
+            data: companyAccess
         });
     } catch (error) {
         console.log(error);
@@ -113,7 +113,7 @@ const updateCompanyAccess = async (req, res, next) => {
         let { tenantId, user_id, company_id, updatedBy } = req.body;
         let companyAccess = new CompanyAccess(tenantId, user_id, company_id, updatedBy)
         let Id = req.params.id;
-        let [findcompanyAccess, _] = await CompanyAccess.findById(Id);
+        let findcompanyAccess = await CompanyAccess.findById(Id);
         if (!findcompanyAccess) {
             throw new Error("The specified CompanyAccess was not found.!")
         }

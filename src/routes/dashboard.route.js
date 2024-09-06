@@ -4,13 +4,13 @@ const auth = require('../middlewares/auth');
 const router = express.Router();
 
 router.post (
-    "/dashboard-data",
+    "/dashboard/dashboard-data",
     auth.verifyToken,
     Dashboardcontroller.ListDashboard
 );
 
 router.post (
-    "/dashboard-group-data",
+    "/dashboard/dashboard-group-data",
     auth.verifyToken,
     Dashboardcontroller.ListDashboardGroupData
 );

@@ -75,22 +75,25 @@ class Childmenu {
         `;
     }
 
-    static findAll(tenantId) {
+    static async findAll(tenantId) {
         let sql = this.findChildmenuQuery(tenantId)
         sql += " ORDER BY parent_display_rank, display_rank ASC";
-        return db.execute(sql);
+        const [result] = await db.execute(sql);
+        return result
     };
 
-    static findActiveAll(tenantId) {
+    static async findActiveAll(tenantId) {
         let sql = this.findChildmenuQuery(tenantId);
         sql += " ORDER BY parent_display_rank, display_rank ASC";
-        return db.execute(sql);
+        const [result] = await db.execute(sql);
+        return result
     };
 
-    static findById(tenantId, id) {
+    static async findById(tenantId, id) {
         let sql = this.findChildmenuQuery(tenantId)
         sql += `AND c.id = ${id}`;
-        return db.execute(sql)
+        const [[result]] = await db.execute(sql);
+        return result
     };
 
     static delete(tenantId, id) {

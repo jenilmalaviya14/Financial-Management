@@ -5,37 +5,37 @@ const router = express.Router();
 
 
 router.post(
-    "/create-account",
+    "/account/create-account",
     auth.verifyToken,
     Accountcontroller.CreateAccount
 );
 
 router.get(
-    "/list-account",
+    "/account/list-account",
     auth.verifyToken,
     Accountcontroller.ListAccount
 );
 
 router.get(
-    "/active-account",
+    "/account/active-account",
     auth.verifyToken,
     Accountcontroller.ActiveAccount
 );
 
 router.get(
-    "/list-account/:id",
+    "/account/list-account/:id",
     auth.verifyToken,
     Accountcontroller.getAccountById
 );
 
 router.delete(
-    "/delete-account/:id",
+    "/account/delete-account/:id",
     auth.verifyToken,
     Accountcontroller.deleteAccount
 );
 
 router.put(
-    "/update-account/:id",
+    "/account/update-account/:id",
     auth.verifyToken,
     Accountcontroller.updateAccount
 );

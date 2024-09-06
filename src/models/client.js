@@ -65,29 +65,32 @@ class Client {
         return sql;
     };
 
-    static findAll(tenantId, companyId, type) {
+    static async findAll(tenantId, companyId, type) {
         let sql = this.getAllClientDetails(tenantId, companyId, type)
         sql += " ORDER BY clientName ASC";
-        return db.execute(sql);
+        const [result] = await db.execute(sql);
+        return result
     };
 
-    static findActiveAll(tenantId, companyId, type) {
+    static async findActiveAll(tenantId, companyId, type) {
         let sql = this.getAllClientDetails(tenantId, companyId, type)
         sql += " AND status = 1"
         sql += " ORDER BY clientName ASC";
-        return db.execute(sql);
+        const [result] = await db.execute(sql);
+        return result
     };
 
-    static findById(tenantId, companyId, id) {
+    static async findById(tenantId, companyId, id) {
         let sql = this.getAllClientDetails(tenantId, companyId)
         sql += `AND clientId= ${id}`;
-        return db.execute(sql)
+        const [result] = await db.execute(sql);
+        return result
     };
 
     static async deleteValidation(clientId) {
-        const [clientResults] = await db.execute(`SELECT COUNT(*) AS count FROM transaction WHERE clientId = ?`, [clientId]);
+        const [[clientResults]] = await db.execute(`SELECT COUNT(*) AS count FROM transaction WHERE clientId = ?`, [clientId]);
 
-        if (clientResults[0].count > 0) {
+        if (clientResults.count > 0) {
             return false
         };
         return true

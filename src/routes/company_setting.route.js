@@ -4,19 +4,19 @@ const auth = require('../middlewares/auth');
 const router = express.Router();
 
 router.get(
-    "/list-companysetting",
+    "/companysetting/list-companysetting",
     auth.verifyToken,
     CompanySetting.ListCompanySetting
 );
 
 router.get(
-    "/list-companysetting/:id",
+    "/companysetting/list-companysetting/:id",
     auth.verifyToken,
     CompanySetting.getIdCompanySetting
 )
 
 router.put(
-    "/update-companysetting",
+    "/companysetting/update-companysetting",
     auth.verifyToken,
     CompanySetting.updateCompanySetting
 );

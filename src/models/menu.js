@@ -90,8 +90,8 @@ class Menu {
             updatedBy,
             get_datetime_in_server_datetime(updatedOn) AS updatedOn
             FROM menu_master WHERE tenantId = ? AND child_id = ? AND role_id = ?`;
-        const result = await db.execute(sql, [tenantId, childId, roleId]);
-        return result[0][0];
+        const [[result]] = await db.execute(sql, [tenantId, childId, roleId]);
+        return result;
     }
 
     static async findAll(tenantId) {
@@ -113,38 +113,44 @@ class Menu {
         LEFT JOIN parentmenu_master p ON m.tenantId = p.tenantId ANd c.parent_id = p.id
         WHERE m.tenantId = ${tenantId}`;
 
-        return db.execute(sql);
+        const [result] = await db.execute(sql);
+        return result
     };
 
-    static findAllWithRoleId(tenantId, roleId) {
-        let sql = `SELECT m.role_id,
-        m.child_id,
-        m.allow_access,
-        m.allow_add,
-        m.allow_edit,
-        m.allow_delete,
-        m.createdBy,
-        get_datetime_in_server_datetime(m.createdOn) AS createdOn,
-        m.updatedBy,
-        get_datetime_in_server_datetime(m.updatedOn) AS updatedOn,
-        c.menu_name AS child_menu_name,
-        c.parent_id,
-        p.menu_name AS parent_menu_name,
-        c.menu_name AS child_menu_name,
-        c.parent_id,
-        p.menu_name AS parent_menu_name
-        FROM menu_master m
-        LEFT JOIN childmenu_master c ON m.tenantId = c.tenantId AND m.child_id = c.id
-        LEFT JOIN parentmenu_master p ON m.tenantId = p.tenantId ANd c.parent_id = p.id
-        WHERE m.tenantId = ${tenantId}`;
-        const params = [];
-        if (roleId) {
-            sql += ` AND m.role_id = ?`;
-            params.push(roleId);
+    static async findAllWithRoleId(tenantId, roleId) {
+        try {
+            let sql = `SELECT m.role_id,
+                m.child_id,
+                m.allow_access,
+                m.allow_add,
+                m.allow_edit,
+                m.allow_delete,
+                m.createdBy,
+                get_datetime_in_server_datetime(m.createdOn) AS createdOn,
+                m.updatedBy,
+                get_datetime_in_server_datetime(m.updatedOn) AS updatedOn,
+                c.menu_name AS child_menu_name,
+                c.parent_id,
+                p.menu_name AS parent_menu_name
+                FROM menu_master m
+                LEFT JOIN childmenu_master c ON m.tenantId = c.tenantId AND m.child_id = c.id
+                LEFT JOIN parentmenu_master p ON m.tenantId = p.tenantId AND c.parent_id = p.id
+                WHERE m.tenantId = ?`;
+
+            const params = [tenantId];
+
+            if (roleId) {
+                sql += ` AND m.role_id = ?`;
+                params.push(roleId);
+            }
+
+            const [result] = await db.execute(sql, params);
+            return result;
+        } catch (error) {
+            console.error("Error in findAllWithRoleId:", error);
+            throw error;
         }
-
-        return db.execute(sql, params);
-    };
+    }
 
     static async findById(tenantId, roleId, id) {
         try {
@@ -179,9 +185,8 @@ class Menu {
 
             params.push(id);
 
-            const [rows, fields] = await db.execute(sql, params);
-
-            return rows;
+            const [[result]] = await db.execute(sql);
+            return result
         } catch (error) {
             throw error;
         }

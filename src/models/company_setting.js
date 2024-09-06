@@ -22,17 +22,18 @@ class CompanySetting {
         }
     };
 
-    static findAll(tenantId, companyId) {
+    static async findAll(tenantId, companyId) {
         let sql = `
         SELECT *
         FROM company_setting
         WHERE tenantId = ${tenantId}
         AND companyId = ${companyId}
         `;
-        return db.execute(sql);
+        const [result] = await db.execute(sql);
+        return result
     };
 
-    static findById(tenantId, id) {
+    static async findById(tenantId, id) {
         let sql = `SELECT id,
         fiscal_start_month,
         default_date_option,
@@ -42,10 +43,11 @@ class CompanySetting {
         get_datetime_in_server_datetime(updatedOn) AS updatedOn
         FROM company_setting WHERE tenantId = ${tenantId}`;
         sql += ` AND id = ${id}`;
-        return db.execute(sql)
+        const [[result]] = await db.execute(sql);
+        return result
     };
 
-    static findBycompanyId(tenantId, companyId) {
+    static async findBycompanyId(tenantId, companyId) {
         let sql = `SELECT id,
         fiscal_start_month,
         default_date_option,
@@ -55,7 +57,8 @@ class CompanySetting {
         get_datetime_in_server_datetime(updatedOn) AS updatedOn
         FROM company_setting WHERE tenantId = ${tenantId}`;
         sql += ` AND companyId = ${companyId}`;
-        return db.execute(sql)
+        const [result] = await db.execute(sql);
+        return result
     };
 
     async updateByCompanyId(tenantId, companyId) {

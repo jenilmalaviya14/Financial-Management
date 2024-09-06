@@ -54,9 +54,10 @@ class Tenant {
     }
 
 
-    static findAll() {
+    static async findAll() {
         let sql = this.getTenants()
-        return db.execute(sql)
+        const [result] = await db.execute(sql);
+        return result
     }
 
     static findActiveAll() {
@@ -65,76 +66,77 @@ class Tenant {
         return db.execute(sql)
     }
 
-    static findById(id) {
-        let sql = this.getTenants()
+    static async findById(id) {
+        let sql = this.getTenants();
         sql += ` WHERE tenantId= ${id}`
-        return db.execute(sql)
+        const [[result]] = await db.execute(sql);
+        return result
     }
 
     static async deleteValidation(tenantId) {
-        const [accountResults] = await db.execute(`SELECT COUNT(*) AS count FROM account_master WHERE tenantId = ${tenantId}`);
+        const [[accountResults]] = await db.execute(`SELECT COUNT(*) AS count FROM account_master WHERE tenantId = ${tenantId}`);
 
-        if (accountResults[0].count > 0) {
+        if (accountResults.count > 0) {
             return false
         }
 
-        const [clientResults] = await db.execute(`SELECT COUNT(*) AS count FROM client_master WHERE tenantId = ${tenantId}`);
+        const [[clientResults]] = await db.execute(`SELECT COUNT(*) AS count FROM client_master WHERE tenantId = ${tenantId}`);
 
-        if (clientResults[0].count > 0) {
+        if (clientResults.count > 0) {
             return false
         }
 
-        const [commonResult] = await db.execute(`SELECT COUNT(*) AS count FROM common_master WHERE tenantId = ${tenantId}`);
+        const [[commonResult]] = await db.execute(`SELECT COUNT(*) AS count FROM common_master WHERE tenantId = ${tenantId}`);
 
-        if (commonResult[0].count > 0) {
+        if (commonResult.count > 0) {
             return false
         }
 
-        const [transactionResult] = await db.execute(`SELECT COUNT(*) AS count FROM transaction WHERE tenantId = ${tenantId}`);
+        const [[transactionResult]] = await db.execute(`SELECT COUNT(*) AS count FROM transaction WHERE tenantId = ${tenantId}`);
 
-        if (transactionResult[0].count > 0) {
+        if (transactionResult.count > 0) {
             return false
         }
 
-        const [transferResult] = await db.execute(`SELECT COUNT(*) AS count FROM transfer WHERE tenantId = ${tenantId}`);
+        const [[transferResult]] = await db.execute(`SELECT COUNT(*) AS count FROM transfer WHERE tenantId = ${tenantId}`);
 
-        if (transferResult[0].count > 0) {
+        if (transferResult.count > 0) {
             return false
         };
 
-        const [menuResult] = await db.execute(`SELECT COUNT(*) AS count FROM menu_master WHERE tenantId = ${tenantId}`);
+        const [[menuResult]] = await db.execute(`SELECT COUNT(*) AS count FROM menu_master WHERE tenantId = ${tenantId}`);
 
-        if (menuResult[0].count > 0) {
+        if (menuResult.count > 0) {
             return false
         };
 
-        const [transactionDetailsResult] = await db.execute(`SELECT COUNT(*) AS count FROM transaction_details WHERE tenantId = ${tenantId}`);
+        const [[transactionDetailsResult]] = await db.execute(`SELECT COUNT(*) AS count FROM transaction_details WHERE tenantId = ${tenantId}`);
 
-        if (transactionDetailsResult[0].count > 0) {
+        if (transactionDetailsResult.count > 0) {
             return false
         };
 
-        const [companyResult] = await db.execute(`SELECT CASE WHEN totalcount = 1 AND totalcount = unchangecount THEN 0 ELSE totalcount END AS count FROM (SELECT COUNT(*) AS totalcount, SUM(CASE WHEN createdOn = updatedOn THEN 1 ELSE 0 END ) AS unchangecount FROM company_master WHERE tenantId = ${tenantId} ) AS a`);
+        const [[companyResult]] = await db.execute(`SELECT CASE WHEN totalcount = 1 AND totalcount = unchangecount THEN 0 ELSE totalcount END AS count FROM (SELECT COUNT(*) AS totalcount, SUM(CASE WHEN createdOn = updatedOn THEN 1 ELSE 0 END ) AS unchangecount FROM company_master WHERE tenantId = ${tenantId} ) AS a`);
 
-        if (companyResult[0].count > 0) {
+        if (companyResult.count > 0) {
             return false
         };
 
-        const [companySettingResult] = await db.execute(`SELECT CASE WHEN totalcount = 1 AND totalcount = unchangecount THEN 0 ELSE totalcount END AS count FROM (SELECT COUNT(*) AS totalcount, SUM(CASE WHEN createdOn = updatedOn THEN 1 ELSE 0 END ) AS unchangecount FROM company_setting WHERE tenantId = ${tenantId} ) AS a`);
+        const [[companySettingResult]] = await db.execute(`SELECT CASE WHEN totalcount = 1 AND totalcount = unchangecount THEN 0 ELSE totalcount END AS count FROM (SELECT COUNT(*) AS totalcount, SUM(CASE WHEN createdOn = updatedOn THEN 1 ELSE 0 END ) AS unchangecount FROM company_setting WHERE tenantId = ${tenantId} ) AS a`);
 
-        if (companySettingResult[0].count > 0) {
+        if (companySettingResult.count > 0) {
             return false
         };
 
-        const [userResult] = await db.execute(`SELECT CASE WHEN totalcount = 1 AND totalcount = unchangecount THEN 0 ELSE totalcount END AS count FROM (SELECT COUNT(*) AS totalcount, SUM(CASE WHEN createdOn = updatedOn THEN 1 ELSE 0 END ) AS unchangecount FROM user_master WHERE tenantId = ${tenantId} ) AS a`);
+        const [[userResult]] = await db.execute(`SELECT CASE WHEN totalcount = 1 AND totalcount = unchangecount THEN 0 ELSE totalcount END AS count FROM (SELECT COUNT(*) AS totalcount, SUM(CASE WHEN createdOn = updatedOn THEN 1 ELSE 0 END ) AS unchangecount FROM user_master WHERE tenantId = ${tenantId} ) AS a`);
 
-        if (userResult[0].count > 0) {
+        if (userResult.count > 0) {
             return false
         };
 
-        const [companyAccessResult] = await db.execute(`SELECT CASE WHEN totalcount = 1 AND totalcount = unchangecount THEN 0 ELSE totalcount END AS count FROM (SELECT COUNT(*) AS totalcount, SUM(CASE WHEN createdOn = updatedOn THEN 1 ELSE 0 END ) AS unchangecount FROM company_access WHERE tenantId = ${tenantId} ) AS a`);
+        const [[companyAccessResult]] = await db.execute(`SELECT CASE WHEN totalcount = 1 AND totalcount = unchangecount THEN 0 ELSE totalcount END AS count FROM (SELECT COUNT(*) AS totalcount, SUM(CASE WHEN createdOn = updatedOn THEN 1 ELSE 0 END ) AS unchangecount FROM company_access WHERE tenantId = ${tenantId} ) AS a`);
 
-        if (companyAccessResult[0].count > 0) {
+        if (companyAccessResult.count > 0) {
             return false
         };
 

@@ -58,24 +58,23 @@ const ListCommon = async (req, res, next) => {
         const { type } = req.body;
 
         if (id) {
-            const common = await Common.findById(tenantId, id)
-                ;
+            const common = await Common.findById(tenantId, id);
 
-            if (common[0].length === 0) {
+            if (common.length === 0) {
                 return res.status(404).json({ success: false, message: 'The specified Common was not found.' });
             }
 
-            return res.status(200).json({ success: true, message: 'Common found', data: common[0][0] });
+            return res.status(200).json({ success: true, message: 'Common found', data: common });
         }
 
-        const commonResult = await Common.findAll(tenantId, type);
+        let commonResult = await Common.findAll(tenantId, type);
 
-        commonResult[0] = commonResultSearch(q, commonResult[0]);
+        commonResult = commonResultSearch(q, commonResult);
 
         let responseData = {
             success: true,
             message: 'Common list has been fetched Successfully.',
-            data: commonResult[0]
+            data: commonResult
         };
 
         res.status(200).json(responseData);
@@ -94,24 +93,23 @@ const Activecommon = async (req, res, next) => {
         const { type } = req.body;
 
         if (id) {
-            const common = await Common.findById(tenantId, id)
-                ;
+            const common = await Common.findById(tenantId, id);
 
-            if (common[0].length === 0) {
+            if (common.length === 0) {
                 return res.status(404).json({ success: false, message: 'The specified Common was not found.' });
             }
 
-            return res.status(200).json({ success: true, message: 'Common found', data: common[0][0] });
+            return res.status(200).json({ success: true, message: 'Common found', data: common });
         }
 
-        const commonResult = await Common.findActiveAll(tenantId, type);
+        let commonResult = await Common.findActiveAll(tenantId, type);
 
-        commonResult[0] = commonResultSearch(q, commonResult[0]);
+        commonResult = commonResultSearch(q, commonResult);
 
         let responseData = {
             success: true,
             message: 'Common list has been fetched Successfully.',
-            data: commonResult[0]
+            data: commonResult
         };
 
         responseData.data = responseData.data.map(common => {
@@ -121,7 +119,7 @@ const Activecommon = async (req, res, next) => {
 
         if (q) {
             const queryLowered = q.toLowerCase();
-            const filteredData = commonResult[0].filter(
+            const filteredData = commonResult.filter(
                 common =>
                     common.name.toLowerCase().includes(queryLowered) ||
                     common.type.toLowerCase().includes(queryLowered) ||
@@ -157,13 +155,12 @@ const getCommonById = async (req, res, next) => {
     const tenantId = token.decodedToken.tenantId;
     try {
         let Id = req.params.id;
-        let [common, _] = await Common.findById(tenantId, Id)
-            ;
+        let common = await Common.findById(tenantId, Id);
 
         res.status(200).json({
             success: true,
             message: "Common Record Successfully",
-            data: common[0]
+            data: common
         });
     } catch (error) {
         console.log(error);
@@ -177,19 +174,20 @@ const deleteCommon = async (req, res, next) => {
         const tenantId = token.decodedToken.tenantId;
         let commonId = req.params.id;
 
-        const commonValidation = await Common.deleteValidation(tenantId, commonId)
+        const commonValidation = await Common.deleteValidation(commonId)
         if (!commonValidation) {
             res.status(200).json({
                 success: false,
                 message: "This Common contains Data, You can't Delete it."
             });
-        }
-        await Common.delete(tenantId, commonId);
+        } else {
+            await Common.delete(tenantId, commonId);
 
-        res.status(200).json({
-            success: true,
-            message: "Common Deleted Successfully"
-        });
+            res.status(200).json({
+                success: true,
+                message: "Common Deleted Successfully"
+            });
+        }
     } catch (error) {
         console.log(error);
         next(error)
@@ -216,8 +214,8 @@ const updateCommon = async (req, res, next) => {
         common.updatedBy = userId;
 
         let Id = req.params.id;
-        let [findcommon, _] = await Common.findById(tenantId, Id)
-            ;
+        let findcommon = await Common.findById(tenantId, Id);
+
         if (!findcommon) {
             throw new Error("The specified Common was not found.!")
         }

@@ -61,20 +61,21 @@ const ListClient = async (req, res, next) => {
         const { type } = req.body;
 
         if (id) {
-            const client = await Client.findById(id);
-            if (client[0].length === 0) {
+            const client = await Client.findById(tenantId, companyId, id);
+            console.log(client);
+            if (client.length === 0) {
                 return res.status(404).json({ success: false, message: 'The specified Client was not found.' });
             }
         };
 
-        const clientResult = await Client.findAll(tenantId, companyId, type);
+        let clientResult = await Client.findAll(tenantId, companyId, type);
 
-        clientResult[0] = clientResultSearch(q, clientResult[0]);
+        clientResult = clientResultSearch(q, clientResult);
 
         let responseData = {
             success: true,
             message: 'Client list has been fetched Successfully.',
-            data: clientResult[0]
+            data: clientResult
         };
         res.status(200).json(responseData);
 
@@ -94,20 +95,20 @@ const ActiveClient = async (req, res, next) => {
         const { type } = req.body;
 
         if (id) {
-            const client = await Client.findById(tenantId, type, id);
-            if (client[0].length === 0) {
+            const client = await Client.findById(tenantId, companyId, id);
+            if (client.length === 0) {
                 return res.status(404).json({ success: false, message: 'The specified Client was not found.' });
             }
         };
 
-        const clientResult = await Client.findActiveAll(tenantId, companyId, type);
+        let clientResult = await Client.findActiveAll(tenantId, companyId, type);
 
-        clientResult[0] = clientResultSearch(q, clientResult[0]);
+        clientResult = clientResultSearch(q, clientResult);
 
         let responseData = {
             success: true,
             message: 'Client list has been fetched Successfully.',
-            data: clientResult[0]
+            data: clientResult
         };
         res.status(200).json(responseData);
 
@@ -123,7 +124,7 @@ const getClientById = async (req, res, next) => {
     const tenantId = token.decodedToken.tenantId;
     try {
         let Id = req.params.id;
-        let [client, _] = await Client.findById(tenantId, companyId, Id)
+        let client = await Client.findById(tenantId, companyId, Id)
 
         res.status(200).json({
             success: true,
@@ -149,14 +150,15 @@ const deleteClient = async (req, res, next) => {
                 success: false,
                 message: "This Client contains Data, You can't Delete it."
             });
+        } else {
+            await Client.delete(tenantId, companyId, clientId);
+
+            res.status(200).json({
+                success: true,
+                message: "Client Deleted Successfully"
+            });
         }
 
-        await Client.delete(tenantId, companyId, clientId);
-
-        res.status(200).json({
-            success: true,
-            message: "Client Deleted Successfully"
-        });
     } catch (error) {
         console.log(error);
         next(error)
@@ -182,7 +184,7 @@ const updateClient = async (req, res, next) => {
         client.updatedBy = userId;
 
         let Id = req.params.id;
-        let [findclient, _] = await Client.findById(tenantId, companyId, Id);
+        let findclient = await Client.findById(tenantId, companyId, Id);
         if (!findclient) {
             throw new Error("The specified Client was not found.!")
         }

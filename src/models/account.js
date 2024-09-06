@@ -74,46 +74,50 @@ class Account {
         `;
     }
 
-    static findAll(tenantId, companyId) {
+    static async findAll(tenantId, companyId) {
         let sql = this.findAccountQuery(tenantId, companyId);
         sql += " ORDER BY group_name, a.account_name";
-        return db.execute(sql);
+        const [result] = await db.execute(sql);
+        return result
     };
 
-    static findActiveAll(tenantId, companyId) {
+    static async findActiveAll(tenantId, companyId) {
         let sql = this.findAccountQuery(tenantId, companyId);
         sql += ` AND a.status = 1`;
         sql += " ORDER BY a.account_name";
-        return db.execute(sql);
+        const [result] = await db.execute(sql);
+        return result
     };
 
-    static findById(id, tenantId, companyId) {
+    static async findById(id, tenantId, companyId) {
         let sql = this.findAccountQuery(tenantId, companyId);
         sql += `AND a.account_id= ${id}`;
-        return db.execute(sql);
+        const [[result]] = await db.execute(sql);
+        return result
     };
 
     static async deleteValidation(accountId) {
 
-        const [accountResults] = await db.execute(`SELECT COUNT(*) AS count FROM transaction WHERE accountId = ?`, [accountId]);
+        const [[accountResults]] = await db.execute(`SELECT COUNT(*) AS count FROM transaction WHERE accountId = ?`, [accountId]);
 
-        if (accountResults[0].count > 0) {
+        if (accountResults.count > 0) {
             return false
         }
 
-        const [fromAccountResults] = await db.execute(`SELECT COUNT(*) AS count FROM transfer WHERE fromAccount = ?`, [accountId]);
+        const [[fromAccountResults]] = await db.execute(`SELECT COUNT(*) AS count FROM transfer WHERE fromAccount = ?`, [accountId]);
 
-        if (fromAccountResults[0].count > 0) {
+        if (fromAccountResults.count > 0) {
             return false
         }
 
-        const [toAccountResults] = await db.execute(`SELECT COUNT(*) AS count FROM transfer WHERE toAccount = ?`, [accountId]);
+        const [[toAccountResults]] = await db.execute(`SELECT COUNT(*) AS count FROM transfer WHERE toAccount = ?`, [accountId]);
 
-        if (toAccountResults[0].count > 0) {
+        if (toAccountResults.count > 0) {
             return false
         }
         return true
-    }
+    };
+
     static async delete(accountId, tenantId) {
 
         const [deleteResult] = await db.execute(`DELETE FROM account_master WHERE tenantId = ? AND account_id = ?`, [tenantId, accountId]);

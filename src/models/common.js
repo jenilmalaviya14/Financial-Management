@@ -60,37 +60,55 @@ class Common {
         return sql
     }
 
-    static findAll(tenantId, type) {
+    static async findAll(tenantId, type) {
         let sql = this.getAllMasters(tenantId, type);
         sql += " ORDER BY name";
-        return db.execute(sql)
+        const [result] = await db.execute(sql);
+        return result
     };
 
-    static findActiveAll(tenantId, type) {
+    static async findActiveAll(tenantId, type) {
         let sql = this.getAllMasters(tenantId, type);
         sql += " AND status = 1";
         sql += " ORDER BY name";
-        return db.execute(sql);
+        const [result] = await db.execute(sql);
+        return result
     };
 
-    static findById(tenantId, id) {
+    static async findById(tenantId, id) {
         let sql = this.getAllMasters(tenantId);
         sql += `AND common_id = ${id}`
-        return db.execute(sql)
+        const [[result]] = await db.execute(sql);
+        return result
     };
 
-    static async deleteValidation(tenantId, commonId) {
-        const [accountResults] = await db.execute(`SELECT COUNT(*) AS count FROM account_master WHERE group_name_Id = ? OR account_type_Id = ?`, [tenantId, commonId]);
+    static async deleteValidation(commonId) {
+        const [[accountResults]] = await db.execute(`SELECT COUNT(*) AS count FROM account_master WHERE group_name_Id = ? OR account_type_Id = ?`, [commonId, commonId]);
 
-        if (accountResults[0].count > 0) {
+        if (accountResults.count > 0) {
             return false
         };
 
-        const [transactionResults] = await db.execute(`SELECT COUNT(*) AS count FROM transaction WHERE payment_type_id = ?`, [commonId]);
+        const [[transactionResults]] = await db.execute(`SELECT COUNT(*) AS count FROM transaction WHERE payment_type_id = ?`, [commonId]);
 
-        if (transactionResults[0].count > 0) {
+        if (transactionResults.count > 0) {
             return false
         }
+
+        const [[transactionDetailsResults]] = await db.execute(`SELECT COUNT(*) AS count FROM transaction_details WHERE subCategoryId = ?`, [commonId]);
+
+        if (transactionDetailsResults.count > 0) {
+            return false
+        }
+
+        const [[paymentTypeResults]] = await db.execute(`SELECT COUNT(*) AS count FROM transfer WHERE paymentType_Id = ?`, [commonId]);
+
+        if (paymentTypeResults.count > 0) {
+            return false
+        }
+
+
+
         return true
     }
 

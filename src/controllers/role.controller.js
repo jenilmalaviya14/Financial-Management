@@ -65,21 +65,21 @@ const ListRole = async (req, res, next) => {
         if (id) {
             const role = await Role.findById(tenantId, id);
 
-            if (role[0].length === 0) {
+            if (role.length === 0) {
                 return res.status(404).json({ success: false, message: 'The specified Role was not found.' });
             }
 
-            return res.status(200).json({ success: true, message: 'Role found', data: role[0][0] });
+            return res.status(200).json({ success: true, message: 'Role found', data: role });
         }
 
-        const roleResult = await Role.findAll(tenantId);
+        let roleResult = await Role.findAll(tenantId);
 
-        roleResult[0] = roleResultSearch(q, roleResult[0]);
+        roleResult = roleResultSearch(q, roleResult);
 
         let responseData = {
             success: true,
             message: 'Role list has been fetched Successfully.',
-            data: roleResult[0]
+            data: roleResult
         };
         res.status(200).json(responseData);
 
@@ -98,21 +98,21 @@ const ActiveRole = async (req, res, next) => {
         if (id) {
             const role = await Role.findById(tenantId, id);
 
-            if (role[0].length === 0) {
+            if (role.length === 0) {
                 return res.status(404).json({ success: false, message: 'The specified Role was not found.' });
             }
 
-            return res.status(200).json({ success: true, message: 'Role found', data: role[0][0] });
+            return res.status(200).json({ success: true, message: 'Role found', data: role });
         }
 
-        const roleResult = await Role.findActiveAll(tenantId);
+        let roleResult = await Role.findActiveAll(tenantId);
 
-        roleResult[0] = roleResultSearch(q, roleResult[0]);
+        roleResult = roleResultSearch(q, roleResult);
 
         let responseData = {
             success: true,
             message: 'Role list has been fetched Successfully.',
-            data: roleResult[0]
+            data: roleResult
         };
 
         responseData.data = responseData.data.map(role => {
@@ -133,12 +133,12 @@ const getRoleById = async (req, res, next) => {
     const tenantId = token.decodedToken.tenantId;
     try {
         let Id = req.params.id;
-        let [role, _] = await Role.findById(tenantId, Id);
+        let role = await Role.findById(tenantId, Id);
 
         res.status(200).json({
             success: true,
             message: "Role Record Successfully",
-            data: role[0]
+            data: role
         });
     } catch (error) {
         console.log(error);
@@ -152,9 +152,9 @@ const deleteRole = async (req, res, next) => {
     try {
         let roleId = req.params.id;
 
-        const [roleResults] = await db.execute(`SELECT COUNT(*) AS count FROM user_master WHERE roleId = ${roleId}`);
+        const [[roleResults]] = await db.execute(`SELECT COUNT(*) AS count FROM user_master WHERE roleId = ${roleId}`);
 
-        if (roleResults[0].count > 0) {
+        if (roleResults.count > 0) {
             return res.status(200).json({
                 success: false,
                 message: "This Role contains Data, You can't Delete it."
@@ -198,7 +198,7 @@ const updateRole = async (req, res, next) => {
             });
         }
 
-        let [findrole, _] = await Role.findById(tenantId, Id);
+        let findrole = await Role.findById(tenantId, Id);
         if (!findrole) {
             throw new Error("The specified Role was not found.!")
         }

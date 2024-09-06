@@ -4,7 +4,7 @@ const auth = require('../middlewares/auth');
 const router = express.Router();
 
 router.post(
-    "/filter-subcategoryReport",
+    "/transactiondetails/filter-subcategoryReport",
     auth.verifyToken,
     TransactionDetailsController.ListTransactionDetails
 );

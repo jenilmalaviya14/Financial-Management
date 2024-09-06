@@ -6,7 +6,7 @@ class Dashboard {
             let sql = "CALL dashboard_amounts(?, ?, ?, ?)";
             let params = [tenantId, companyId, startDate, endDate];
 
-            const [result, _] = await db.execute(sql, params);
+            const [[result]] = await db.execute(sql, params);
             return result;
         } catch (error) {
             console.error('Error in calculateDashboardAmounts:', error);
@@ -18,7 +18,7 @@ class Dashboard {
         try {
             let sql = "CALL dashboard_account(?, ?, ?, ?)";
             let params = [tenantId, companyId, startDate, endDate];
-            const [result, _] = await db.execute(sql, params);
+            const [[result]] = await db.execute(sql, params);
             return result;
         } catch (error) {
             console.error('Error in getDashboardAccountData:', error);
@@ -30,7 +30,7 @@ class Dashboard {
         try {
             let sql = "CALL dashboard_group(?, ?, ?, ?)";
             let params = [tenantId, companyId, startDate, endDate];
-            const [result, _] = await db.execute(sql, params);
+            const [[result]] = await db.execute(sql, params);
             return result;
         } catch (error) {
             console.error('Error in getDashboardGroupData:', error);

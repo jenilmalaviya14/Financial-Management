@@ -72,21 +72,21 @@ const ListCompany = async (req, res, next) => {
         if (id) {
             const company = await Company.findById(tenantId, id);
 
-            if (company[0].length === 0) {
+            if (company.length === 0) {
                 return res.status(404).json({ success: false, message: 'The specified Company was not found.' });
             }
 
-            return res.status(200).json({ success: true, message: 'Company found', data: company[0][0] });
+            return res.status(200).json({ success: true, message: 'Company found', data: company });
         }
 
-        const companyResult = await Company.findAllByUserId(tenantId, userId);
+        let companyResult = await Company.findAllByUserId(tenantId, userId);
 
-        companyResult[0] = companyResultSearch(q, companyResult[0]);
+        companyResult = companyResultSearch(q, companyResult);
 
         let responseData = {
             success: true,
             message: 'Company list has been fetched Successfully.',
-            data: companyResult[0]
+            data: companyResult
         };
 
         res.status(200).json(responseData);
@@ -108,21 +108,21 @@ const ActiveCompany = async (req, res, next) => {
         if (id) {
             const company = await Company.findById(tenantId, id);
 
-            if (company[0].length === 0) {
+            if (company.length === 0) {
                 return res.status(404).json({ success: false, message: 'The specified Company was not found.' });
             }
 
-            return res.status(200).json({ success: true, message: 'Company found', data: company[0][0] });
+            return res.status(200).json({ success: true, message: 'Company found', data: company });
         }
 
-        const companyResult = await Company.findActiveAll(tenantId);
+        let companyResult = await Company.findActiveAll(tenantId);
 
-        companyResult[0] = companyResultSearch(q, companyResult[0]);
+        companyResult = companyResultSearch(q, companyResult);
 
         let responseData = {
             success: true,
             message: 'Company list has been fetched Successfully.',
-            data: companyResult[0]
+            data: companyResult
         };
 
         responseData.data = responseData.data.map(company => {
@@ -144,12 +144,12 @@ const getCompanyById = async (req, res, next) => {
     const userId = token.decodedToken.userId
     try {
         let Id = req.params.id;
-        let [company, _] = await Company.findById(tenantId, Id);
+        let company = await Company.findById(tenantId, Id);
 
         res.status(200).json({
             success: true,
             message: "Company Record Successfully",
-            data: company[0]
+            data: company
         });
     } catch (error) {
         console.log(error);
@@ -163,22 +163,22 @@ const deleteCompany = async (req, res, next) => {
         const tenantId = token.decodedToken.tenantId;
         const companyId = req.params.id;
 
-        const companyValidation = await Company.deleteValidation(accountId)
+        const companyValidation = await Company.deleteValidation(companyId)
         if (!companyValidation) {
             res.status(200).json({
                 success: false,
                 message
             });
+        } else {
+            await Company.delete(tenantId, companyId);
+
+            await CompanySetting.delete(tenantId, companyId);
+
+            res.status(200).json({
+                success: true,
+                message: "Common Deleted Successfully"
+            });
         }
-
-        await Company.delete(tenantId, companyId);
-
-        await CompanySetting.delete(tenantId, companyId);
-
-        res.status(200).json({
-            success: true,
-            message: "Common Deleted Successfully"
-        });
     } catch (error) {
         console.log(error);
         next(error)
@@ -203,7 +203,7 @@ const updateCompany = async (req, res, next) => {
         company.updatedBy = userId;
 
         let Id = req.params.id;
-        let [findcompany, _] = await Company.findById(tenantId, Id);
+        let findcompany = await Company.findById(tenantId, Id);
         if (!findcompany) {
             throw new Error("The specified Company was not found.!")
         }

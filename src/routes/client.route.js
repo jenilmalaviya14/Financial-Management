@@ -5,37 +5,37 @@ const router = express.Router();
 
 
 router.post(
-    "/create-client",
+    "/client/create-client",
     auth.verifyToken,
     Clientcontroller.CreateClient
 );
 
 router.post(
-    "/list-client",
+    "/client/list-client",
     auth.verifyToken,
     Clientcontroller.ListClient
 );
 
 router.post(
-    "/active-client",
+    "/client/active-client",
     auth.verifyToken,
     Clientcontroller.ActiveClient
 );
 
 router.get(
-    "/list-client/:id",
+    "/client/list-client/:id",
     auth.verifyToken,
     Clientcontroller.getClientById
 );
 
 router.delete(
-    "/delete-client/:id",
+    "/client/delete-client/:id",
     auth.verifyToken,
     Clientcontroller.deleteClient
 );
 
 router.put(
-    "/update-client/:id",
+    "/client/update-client/:id",
     auth.verifyToken,
     Clientcontroller.updateClient
 );

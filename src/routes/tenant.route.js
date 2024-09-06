@@ -4,43 +4,43 @@ const auth = require('../middlewares/auth');
 const router = express.Router();
 
 router.post(
-    "/create-tenant",
+    "/tenant/create-tenant",
     auth.verifyToken,
     TenantController.CreateTenant
 );
 
 router.get(
-    "/list-tenant",
+    "/tenant/list-tenant",
     auth.verifyToken,
     TenantController.ListTenant
 );
 
 router.get(
-    "/login-tenant/:id",
+    "/tenant/login-tenant/:id",
     auth.verifyToken,
     TenantController.logintenant
 );
 
 router.get(
-    "/active-tenant",
+    "/tenant/active-tenant",
     auth.verifyToken,
     TenantController.ActiveTenant
 );
 
 router.get(
-    "/list-tenant/:id",
+    "/tenant/list-tenant/:id",
     auth.verifyToken,
     TenantController.getTenantById
 );
 
 router.delete(
-    "/delete-tenant/:id",
+    "/tenant/delete-tenant/:id",
     auth.verifyToken,
     TenantController.deleteTenant
 );
 
 router.put(
-    "/update-tenant/:id",
+    "/tenant/update-tenant/:id",
     auth.verifyToken,
     TenantController.updateTenant
 );

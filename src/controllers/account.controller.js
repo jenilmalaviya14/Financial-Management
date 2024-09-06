@@ -29,6 +29,10 @@ const CreateAccount = async (req, res) => {
 
         const { account_name, group_name_Id, join_date, exit_date, account_type_Id, status } = req.body;
 
+        // 2024-05-20T08:32:57.124Z
+        // 2024-05-20T08:37:50.188Z
+        // Mon May 21 2024 13:52:16 GMT+0530
+
         const companyId = token.decodedToken.companyId;
         const tenantId = token.decodedToken.tenantId;
         const userId = token.decodedToken.userId;
@@ -63,23 +67,23 @@ const ListAccount = async (req, res, next) => {
         const { q = '', id } = req.query;
 
         if (id) {
-            const account = await Account.findById(id);
+            const account = await Account.findById(id, tenantId, companyId);
 
-            if (account[0].length === 0) {
+            if (account.length === 0) {
                 return res.status(404).json({ success: false, message: 'The specified Account was not found.' });
             }
 
-            return res.status(200).json({ success: true, message: 'Account found', data: account[0][0] });
+            return res.status(200).json({ success: true, message: 'Account found', data: account });
         }
 
-        const accountResult = await Account.findAll(tenantId, companyId);
+        let accountResult = await Account.findAll(tenantId, companyId);
 
-        accountResult[0] = accountResultSearch(q, accountResult[0]);
+        accountResult = accountResultSearch(q, accountResult);
 
         let responseData = {
             success: true,
             message: 'Account list has been fetched Successfully.',
-            data: accountResult[0]
+            data: accountResult
         };
 
         res.status(200).json(responseData);
@@ -97,23 +101,23 @@ const ActiveAccount = async (req, res, next) => {
         const { q = '', id } = req.query;
 
         if (id) {
-            const account = await Account.findById(id);
+            const account = await Account.findById(id, tenantId, companyId);
 
-            if (account[0].length === 0) {
+            if (account.length === 0) {
                 return res.status(404).json({ success: false, message: 'The specified Account was not found.' });
             }
 
-            return res.status(200).json({ success: true, message: 'Account found', data: account[0][0] });
+            return res.status(200).json({ success: true, message: 'Account found', data: account });
         }
 
-        const accountResult = await Account.findActiveAll(tenantId, companyId);
+        let accountResult = await Account.findActiveAll(tenantId, companyId);
 
-        accountResult[0] = accountResultSearch(q, accountResult[0]);
+        accountResult = accountResultSearch(q, accountResult);
 
         let responseData = {
             success: true,
             message: 'Account list has been fetched Successfully.',
-            data: accountResult[0]
+            data: accountResult
         };
 
         res.status(200).json(responseData);
@@ -130,13 +134,13 @@ const getAccountById = async (req, res, next) => {
         const tenantId = token.decodedToken.tenantId;
         const companyId = token.decodedToken.companyId;
 
-        let [account, _] = await Account.findById(Id, tenantId, companyId);
+        let account = await Account.findById(Id, tenantId, companyId);
 
 
         res.status(200).json({
             success: true,
             message: "Account Record Successfully",
-            data: account[0]
+            data: account
         });
     } catch (error) {
         console.log(error);
@@ -156,14 +160,13 @@ const deleteAccount = async (req, res, next) => {
                 success: false,
                 message: "This Account contains Data, You can't Delete it."
             });
+        } else {
+            await Account.delete(accountId, tenantId);
+            res.status(200).json({
+                success: true,
+                message: "Account Deleted Successfully"
+            });
         }
-
-        await Account.delete(accountId, tenantId);
-
-        res.status(200).json({
-            success: true,
-            message: "Account Deleted Successfully"
-        });
     } catch (error) {
         console.log(error);
         next(error)
@@ -179,7 +182,7 @@ const updateAccount = async (req, res, next) => {
             return res.status(400).json({ success: false, message: error.message });
         };
 
-        let { account_name, group_name_Id, join_date, exit_date, account_type_Id, status, createdBy } = req.body;
+        let { account_name, group_name_Id, join_date, exit_date, account_type_Id, status } = req.body;
 
         const tenantId = token.decodedToken.tenantId;
         const companyId = token.decodedToken.companyId;
@@ -191,7 +194,7 @@ const updateAccount = async (req, res, next) => {
 
         let Id = req.params.id;
 
-        let [findaccount, _] = await Account.findById(Id, tenantId, companyId);
+        let findaccount = await Account.findById(Id, tenantId, companyId);
         if (!findaccount) {
             throw new Error("The specified Account was not found.!")
         }

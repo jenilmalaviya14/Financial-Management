@@ -67,7 +67,7 @@ class TransactionDetails {
             sql = `CALL transaction_report_statement(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
             params = [tenantId, companyId, startDate, endDate, paymentTypeIdsString, clientTypeIdsString, categoryTypeIdsString, accountIdsString, groupTypeIdsString, accountTypeIdsString, subcategoryTypeIdsString, fromAmount, toAmount, reportTypes];
 
-            const [result, _] = await db.execute(sql, params, { nullUndefined: true });
+            const [[result, _]] = await db.execute(sql, params, { nullUndefined: true });
             return result;
         } catch (error) {
             console.error('Error in TransactionDetails:', error);
@@ -91,7 +91,8 @@ class TransactionDetails {
             FROM transaction_details AS td
             LEFT JOIN common_master AS cm ON td.subCategoryId = cm.common_id
             WHERE td.tenantId = ${tenantId} AND td.companyId = ${companyId} AND td.transactionId = ${transactionId}`;
-        return db.execute(sql);
+            const [result] = await db.execute(sql);
+            return result
     }
 
     static delete(tenantId, companyId, ids) {

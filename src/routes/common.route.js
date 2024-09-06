@@ -5,37 +5,37 @@ const router = express.Router();
 
 
 router.post(
-    "/create-common",
+    "/common/create-common",
     auth.verifyToken,
     Commoncontroller.CreateCommon
 );
 
 router.post(
-    "/list-common",
+    "/common/list-common",
     auth.verifyToken,
     Commoncontroller.ListCommon
 );
 
 router.post(
-    "/active-common",
+    "/common/active-common",
     auth.verifyToken,
     Commoncontroller.Activecommon
 );
 
 router.get(
-    "/list-common/:id",
+    "/common/list-common/:id",
     auth.verifyToken,
     Commoncontroller.getCommonById
 );
 
 router.delete(
-    "/delete-common/:id",
+    "/common/delete-common/:id",
     auth.verifyToken,
     Commoncontroller.deleteCommon
 );
 
 router.put(
-    "/update-common/:id",
+    "/common/update-common/:id",
     auth.verifyToken,
     Commoncontroller.updateCommon
 );

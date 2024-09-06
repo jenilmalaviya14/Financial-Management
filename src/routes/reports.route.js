@@ -4,67 +4,67 @@ const auth = require('../middlewares/auth');
 const router = express.Router();
 
 router.post(
-    "/filter-paymentReport",
+    "/report/filter-paymentReport",
     auth.verifyToken,
     Reportcontroller.ListPaymentReport
 );
 
 router.post(
-    "/filter-clientReport",
+    "/report/filter-clientReport",
     auth.verifyToken,
     Reportcontroller.ListClientReport
 );
 
 router.post(
-    "/filter-categoryReport",
+    "/report/filter-categoryReport",
     auth.verifyToken,
     Reportcontroller.ListCategoryReport
 );
 
 router.post(
-    "/filter-accountReport",
+    "/report/filter-accountReport",
     auth.verifyToken,
     Reportcontroller.ListAccountReport
 );
 
 router.post(
-    "/filter-groupReport",
+    "/report/filter-groupReport",
     auth.verifyToken,
     Reportcontroller.ListGroupReport
 );
 
 router.post(
-    "/filter-companyReport",
+    "/report/filter-companyReport",
     auth.verifyToken,
     Reportcontroller.ListCompanyReport
 );
 
 router.post(
-    "/filter-accountTypeReport",
+    "/report/filter-accountTypeReport",
     auth.verifyToken,
     Reportcontroller.ListAccountTypeReport
 );
 
 router.post(
-    "/filter-monthlyReport",
+    "/report/filter-monthlyReport",
     auth.verifyToken,
     Reportcontroller.ListMonthlyReport
 );
 
 router.post(
-    "/filter-quarterlyReport",
+    "/report/filter-quarterlyReport",
     auth.verifyToken,
     Reportcontroller.ListQuarterlyReport
 );
 
 router.post(
-    "/filter-semiannualReport",
+    "/report/filter-semiannualReport",
     auth.verifyToken,
     Reportcontroller.ListSemiannualReport
 );
 
 router.post(
-    "/filter-annuallyReport",
+    "/report/filter-annuallyReport",
     auth.verifyToken,
     Reportcontroller.ListAnnuallyReport
 );

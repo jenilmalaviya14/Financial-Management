@@ -49,7 +49,8 @@ class Transaction {
                 '${this.companyId}',
                 '${this.clientId}'
             )`;
-            return db.execute(sql);
+            const [result] = await db.execute(sql);
+            return result
         } catch (error) {
             throw error;
         }
@@ -71,12 +72,12 @@ class Transaction {
             params = [tenantId, companyId, startDate, endDate, type, paymentTypeIdsString, clientTypeIdsString, categoryTypeIdsString, accountIdsString, groupTypeIdsString, accountTypeIdsString, limit || 95, fromAmount, toAmount];
 
 
-            const [result, _] = await db.execute(sql, params, { nullUndefined: true });
+            const [[result, _]] = await db.execute(sql, params, { nullUndefined: true });
 
-            for (let i = 0; i < result[0].length; i++) {
-                const transactionId = result[0][i].transactionId;
+            for (let i = 0; i < result.length; i++) {
+                const transactionId = result[i].transactionId;
                 const details = await TransactionDetails.findAllByTransactionId(tenantId, companyId, transactionId);
-                result[0][i].details = details[0];
+                result[i].details = details;
             }
 
             return result;
@@ -87,7 +88,7 @@ class Transaction {
         }
     };
 
-    static findById(tenantId, id) {
+    static async findById(tenantId, id) {
         let sql = `SELECT t.transactionId,
         t.transaction_date,
         t.transaction_type,
@@ -120,7 +121,8 @@ class Transaction {
         LEFT JOIN
             common_master ag ON t.tenantId = ag.tenantId AND a.group_name_Id = ag.common_id
         WHERE t.tenantId = ${tenantId} AND t.transactionId = ${id}`;
-        return db.execute(sql)
+        const [result] = await db.execute(sql);
+        return result
     };
 
     static delete(tenantId, id) {

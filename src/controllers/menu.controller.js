@@ -52,27 +52,29 @@ const CreateMenu = async (req, res) => {
 const ListMenu = async (req, res, next) => {
     const token = getDecodeToken(req);
     const tenantId = token.decodedToken.tenantId;
+    const roleId = token.decodedToken.roleId;
+
     try {
         const { q = '', id } = req.query;
 
         if (id) {
-            const menu = await Menu.findById(tenantId, id);
+            const menu = await Menu.findById(tenantId, roleId, id);
 
-            if (menu[0].length === 0) {
+            if (menu.length === 0) {
                 return res.status(404).json({ success: false, message: 'The specified Menu was not found.' });
             }
 
-            return res.status(200).json({ success: true, message: 'Menu found', data: menu[0][0] });
+            return res.status(200).json({ success: true, message: 'Menu found', data: menu });
         }
 
-        const menuResult = await Menu.findAll(tenantId);
+        let menuResult = await Menu.findAll(tenantId);
 
-        menuResult[0] = menuResultSearch(q, menuResult[0]);
+        menuResult = menuResultSearch(q, menuResult);
 
         let responseData = {
             success: true,
             message: 'Menu list has been fetched Successfully.',
-            data: menuResult[0]
+            data: menuResult
         };
 
         responseData.data = responseData.data.map(menu => {
@@ -101,21 +103,21 @@ const ListMenuWithRoleId = async (req, res, next) => {
         if (id) {
             const menu = await Menu.findById(tenantId, roleId, id);
 
-            if (menu[0].length === 0) {
+            if (menu.length === 0) {
                 return res.status(404).json({ success: false, message: 'The specified Menu was not found.' });
             }
 
-            return res.status(200).json({ success: true, message: 'Menu found', data: menu[0][0] });
+            return res.status(200).json({ success: true, message: 'Menu found', data: menu });
         }
 
-        const menuResult = await Menu.findAllWithRoleId(tenantId, roleId);
+        let menuResult = await Menu.findAllWithRoleId(tenantId, roleId);
 
-        menuResult[0] = menuResultSearch(q, menuResult[0]);
+        menuResult = menuResultSearch(q, menuResult);
 
         let responseData = {
             success: true,
             message: 'Menu list has been fetched Successfully.',
-            data: menuResult[0]
+            data: menuResult
         };
 
         responseData.data = responseData.data.map(menu => {
@@ -136,12 +138,12 @@ const getMenuById = async (req, res, next) => {
     const tenantId = token.decodedToken.tenantId
     try {
         let Id = req.params.id;
-        let [menu, _] = await Menu.findById(tenantId, roleId, Id);
+        let menu = await Menu.findById(tenantId, roleId, Id);
 
         res.status(200).json({
             success: true,
             message: "Menu Record Successfully",
-            data: menu[0]
+            data: menu
         });
     } catch (error) {
         console.log(error);
@@ -195,7 +197,7 @@ const updateMenu = async (req, res, next) => {
         menu.updatedBy = userId;
 
         let Id = req.params.id;
-        let [findmenu, _] = await Menu.findById(tenantId, Id, roleId);
+        let findmenu = await Menu.findById(tenantId, roleId, Id);
         if (!findmenu) {
             throw new Error("The specified Menu was not found.!")
         }

@@ -25,7 +25,7 @@ let tenantResultSearch = (q, tenantResult) => {
 
 let tenantDifferenceDays = async (tenantResult) => {
     const currentDate = new Date();
-    tenantResult[0].forEach(tenant => {
+    tenantResult.forEach(tenant => {
         const endDate = new Date(tenant.enddate);
         const daysDifference = Math.ceil((endDate - currentDate) / (1000 * 60 * 60 * 24));
         tenant.tenantDays = daysDifference;
@@ -89,6 +89,7 @@ const ListTenant = async (req, res, next) => {
         const roleId = token.decodedToken.roleId;
 
         const isValidRole = await Role.isThisSuperAdminRole(tenantId, roleId)
+
         if (!isValidRole) {
             return res.status(401).json({
                 success: false,
@@ -101,23 +102,23 @@ const ListTenant = async (req, res, next) => {
         if (id) {
             const tenant = await Tenant.findById(id);
 
-            if (tenant[0].length === 0) {
+            if (tenant.length === 0) {
                 return res.status(404).json({ success: false, message: 'The specified Tenant was not found.' });
             }
 
-            return res.status(200).json({ success: true, message: 'Tenant found', data: tenant[0][0] });
+            return res.status(200).json({ success: true, message: 'Tenant found', data: tenant });
         }
 
-        const tenantResult = await Tenant.findAll();
+        let tenantResult = await Tenant.findAll();
 
         await tenantDifferenceDays(tenantResult)
 
-        tenantResult[0] = tenantResultSearch(q, tenantResult[0]);
+        tenantResult = tenantResultSearch(q, tenantResult);
 
         let responseData = {
             success: true,
             message: 'Tenant list has been fetched Successfully.',
-            data: tenantResult[0]
+            data: tenantResult
         };
 
         return res.status(200).json(responseData);
@@ -138,7 +139,7 @@ const logintenant = async (req, res, next) => {
             });
         }
 
-        const [adminUser] = await User.findByAdmin(tenantId, 'Admin');
+        const adminUser = await User.findByAdmin(tenantId, 'Admin');
 
         if (!adminUser) {
             return res.status(404).json({
@@ -177,23 +178,23 @@ const ActiveTenant = async (req, res, next) => {
         if (id) {
             const tenant = await Tenant.findById(id);
 
-            if (tenant[0].length === 0) {
+            if (tenant.length === 0) {
                 return res.status(404).json({ success: false, message: 'The specified Tenant was not found.' });
             }
 
-            return res.status(200).json({ success: true, message: 'Tenant found', data: tenant[0][0] });
+            return res.status(200).json({ success: true, message: 'Tenant found', data: tenant });
         };
 
-        const tenantResult = await Tenant.findActiveAll();
+        let tenantResult = await Tenant.findActiveAll();
 
         await tenantDifferenceDays(tenantResult)
 
-        tenantResult[0] = tenantResultSearch(q, tenantResult[0]);
+        tenantResult = tenantResultSearch(q, tenantResult);
 
         let responseData = {
             success: true,
             message: 'Tenant list has been fetched Successfully.',
-            data: tenantResult[0]
+            data: tenantResult
         };
 
         res.status(200).json(responseData);
@@ -226,7 +227,7 @@ const getTenantById = async (req, res, next) => {
         res.status(200).json({
             success: true,
             message: "tenant Record Successfully",
-            data: tenantResult[0]
+            data: tenantResult
         });
     } catch (error) {
         console.log(error);
@@ -256,12 +257,13 @@ const deleteTenant = async (req, res, next) => {
                 success: false,
                 message: "This Tenant contains Data, You can't Delete it."
             });
+        } else {
+            await Tenant.delete(id);
+            return res.status(200).json({
+                success: true,
+                message: "Tenant Deleted Successfully"
+            });
         }
-        await Tenant.delete(id);
-        return res.status(200).json({
-            success: true,
-            message: "Tenant Deleted Successfully"
-        });
     } catch (error) {
         return res.status(200).json({
             success: false,
@@ -296,7 +298,7 @@ const updateTenant = async (req, res, next) => {
         tenant.updatedBy = userId
 
         let Id = req.params.id;
-        let [findtenant, _] = await Tenant.findById(Id);
+        let findtenant = await Tenant.findById(Id);
         if (!findtenant) {
             throw new Error("The specified Tenant was not found.!")
         }

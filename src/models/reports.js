@@ -17,7 +17,7 @@ class reports {
             sql = `CALL report_statement(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
             params = [tenantId, companyId, startDate, endDate, paymentTypeIdsString, clientTypeIdsString, categoryTypeIdsString, accountIdsString, groupTypeIdsString, accountTypeIdsString, fromAmount, toAmount, reportTypes];
 
-            const [result, _] = await db.execute(sql, params, { nullUndefined: true });
+            const [[result]] = await db.execute(sql, params, { nullUndefined: true });
             return result;
         } catch (error) {
             console.error('Error in findAll Reports:', error);

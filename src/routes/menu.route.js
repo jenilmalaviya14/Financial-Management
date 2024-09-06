@@ -4,43 +4,43 @@ const auth = require('../middlewares/auth');
 const router = express.Router();
 
 router.post(
-    "/create-menu",
+    "/menu/create-menu",
     auth.verifyToken,
     Menucontroller.CreateMenu
 );
 
 router.get(
-    "/list-menu",
+    "/menu/list-menu",
     auth.verifyToken,
     Menucontroller.ListMenu
 );
 
 router.get(
-    "/list-menurole/:id",
+    "/menu/list-menurole/:id",
     auth.verifyToken,
     Menucontroller.ListMenuWithRoleId
 );
 
 router.get(
-    "/list-menu/:id",
+    "/menu/list-menu/:id",
     auth.verifyToken,
     Menucontroller.getMenuById
 );
 
 router.delete(
-    "/delete-menu/:id",
+    "/menu/delete-menu/:id",
     auth.verifyToken,
     Menucontroller.deleteMenu
 );
 
 router.delete(
-    "/reset-menu/:id",
+    "/menu/reset-menu/:id",
     auth.verifyToken,
     Menucontroller.resetMenu
 );
 
 router.put(
-    "/update-menu/:id",
+    "/menu/update-menu/:id",
     auth.verifyToken,
     Menucontroller.updateMenu
 );

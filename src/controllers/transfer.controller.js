@@ -45,7 +45,7 @@ const CreateTransfer = async (req, res) => {
         let saveTransfer = await transfer.save()
 
         if (details && details.length > 0) {
-            const transactionDetails = details.map(detail => new TransactionDetails(tenantId, saveTransfer[0].insertId, 'Transfer', detail.subCategoryId, detail.amount, detail.description, companyId, userId, userId));
+            const transactionDetails = details.map(detail => new TransactionDetails(tenantId, saveTransfer.insertId, 'Transfer', detail.subCategoryId, detail.amount, detail.description, companyId, userId, userId));
 
             await TransactionDetails.save(transactionDetails);
         }
@@ -79,22 +79,22 @@ const ListTransfer = async (req, res, next) => {
             if (transfer.length === 0) {
                 return res.status(404).json({ success: false, message: 'The specified Transfer was not found.' });
             }
-            return res.status(200).json({ success: true, message: 'Transfer found', data: transfer[0] });
+            return res.status(200).json({ success: true, message: 'Transfer found', data: transfer });
         }
 
         let transferResult = await Transfer.findAll(tenantId, companyId, startDate, endDate, paymentTypeIds, accountTypeIds, limit, fromAmount, toAmount);
 
-        transferResult[0] = transferResultSearch(q, transferResult[0]);
+        transferResult = transferResultSearch(q, transferResult);
 
         let responseData = {
             success: true,
             message: 'Transfer list has been fetched Successfully.',
-            data: transferResult[0]
+            data: transferResult
         };
 
         if (q) {
             const queryLowered = q.toLowerCase();
-            const filteredData = transferResult[0].filter(
+            const filteredData = transferResult.filter(
                 transfer =>
                     (transfer.payment_type_name && typeof transfer.payment_type_name === 'string' && transfer.payment_type_name.toLowerCase().includes(queryLowered)) ||
                     (transfer.fromAccountName && typeof transfer.fromAccountName === 'string' && transfer.fromAccountName.toLowerCase().includes(queryLowered)) ||
@@ -130,7 +130,7 @@ const getTransferById = async (req, res, next) => {
     const tenantId = token.decodedToken.tenantId;
     try {
         let Id = req.params.id;
-        let [transfer, _] = await Transfer.findById(tenantId, Id);
+        let transfer = await Transfer.findById(tenantId, Id);
 
         res.status(200).json({
             success: true,
@@ -153,8 +153,8 @@ const deleteTransfer = async (req, res, next) => {
 
         const transactionDetails = await TransactionDetails.findAllByTransactionId(tenantId, companyId, Id);
 
-        if (transactionDetails.length > 0 && Array.isArray(transactionDetails[0])) {
-            const detailIds = transactionDetails[0].map(detail => detail.id);
+        if (transactionDetails.length > 0 && Array.isArray(transactionDetails)) {
+            const detailIds = transactionDetails.map(detail => detail.id);
 
             if (detailIds.length > 0) {
                 await TransactionDetails.delete(tenantId, companyId, detailIds);
@@ -194,7 +194,7 @@ const updateTransfer = async (req, res, next) => {
         transfer.updatedBy = userId
 
         let transferId = req.params.id;
-        let [findtransfer, _] = await Transfer.findById(tenantId, transferId);
+        let findtransfer = await Transfer.findById(tenantId, transferId);
         if (!findtransfer) {
             throw new Error("The specified Transfer was not found.!")
         }
@@ -203,7 +203,7 @@ const updateTransfer = async (req, res, next) => {
         const existingDetailsIds = details.map(detail => detail.id).filter(id => id);
         const existingDetails = await TransactionDetails.findAllByTransactionId(tenantId, companyId, transferId);
 
-        for (const detail of existingDetails[0]) {
+        for (const detail of existingDetails) {
             if (!existingDetailsIds.includes(detail.id)) {
                 await TransactionDetails.delete(tenantId, companyId, detail.id);
             }

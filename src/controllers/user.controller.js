@@ -9,6 +9,7 @@ const bcrypt = require('bcrypt')
 const emailService = require('../service/email.service');
 const { createUserSchema, updateUserSchema } = require('../validation/user.validation');
 const { getDecodeToken } = require('../middlewares/decoded');
+const { use } = require("../routes/user.route");
 const baseURL = process.env.API_BASE_URL;
 
 let userResultSearch = (q, userResult) => {
@@ -29,9 +30,8 @@ let userResultSearch = (q, userResult) => {
 };
 
 const checkUserLogin = async (user) => {
-    const tenant = await Tenant.findById(user[0].tenantId);
-
-    if (!tenant || !tenant[0][0]) {
+    const tenant = await Tenant.findById(user.tenantId);
+    if (!tenant || !tenant) {
         return {
             success: false,
             message: 'Tenant data is either incomplete or not found.'
@@ -39,29 +39,28 @@ const checkUserLogin = async (user) => {
     }
 
     const currentDate = new Date();
-    const endDate = new Date(tenant[0][0].enddate);
+    const endDate = new Date(tenant.enddate);
     const daysDifference = Math.ceil((endDate - currentDate) / (1000 * 60 * 60 * 24));
-    let tenantStatus = tenant[0][0].status;
-    let expiryDate = tenant[0][0].enddate;
+    let tenantStatus = tenant.status;
+    let expiryDate = tenant.enddate;
     let tenantExpire = (daysDifference < 0 || tenantStatus === 0) ? 1 : 0;
 
-    if (tenant[0][0].tenantId === -1) {
+    if (tenant.tenantId === -1) {
         tenantExpire = 0;
         tenantStatus = 1;
     }
 
-    if (user[0].profile_image_filename) {
-        user[0].profile_image_filename = `${baseURL}${user[0].profile_image_filename}`;
+    if (user.profile_image_filename) {
+        user.profile_image_filename = `${baseURL}${user.profile_image_filename}`;
     }
-    const companyResult = await CompanyAccess.findAllByCompanyAccess(user[0].tenantId, user[0].id);
-    let companyName = companyResult[0][0].company_name
+    const companyResult = await CompanyAccess.findAllByCompanyAccess(user.tenantId, user.id);
 
-    const roleResult = await Role.findById(user[0].tenantId, user[0].roleId);
+    const roleResult = await Role.findById(user.tenantId, user.roleId);
 
     const userWithCompanies = {
-        ...user[0],
-        companies: companyResult[0].map(comp => ({ companyId: comp.company_id, companyName: comp.company_name })),
-        roleName: roleResult[0][0].rolename,
+        ...user,
+        companies: companyResult.map(comp => ({ companyId: comp.company_id, companyName: comp.company_name })),
+        roleName: roleResult.rolename,
         tenantDays: daysDifference,
         tenantStatus: tenantStatus
     };
@@ -74,7 +73,7 @@ const checkUserLogin = async (user) => {
         tenantId: userWithCompanies.tenantId,
         roleId: userWithCompanies.roleId,
         companyId: selectedCompany.companyId,
-        companyName: companyName,
+        companyName: selectedCompany.companyName,
         tenantExpire: tenantExpire,
         expiryDate: expiryDate,
         tenantDays: daysDifference
@@ -97,25 +96,23 @@ const checkUserLogin = async (user) => {
 const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const [user, _] = await User.findByEmail(email);
+        const user = await User.findByEmail(email);
 
-        if (!user[0]) {
-            throw new Error('The Email or Password is Incorrect.');
+        if (!user) {
+            return res.status(401).json({ success: false, message: 'The Email or Password is Incorrect.' });
         }
-        if (user[0].status === 0) {
-            throw new Error('The Email or Password is Incorrect.');
+        if (user.status === 0) {
+            return res.status(401).json({ success: false, message: 'The Email or Password is Incorrect.' });
         }
-        const isValidPassword = await User.comparePassword(password, user[0].password);
+        const isValidPassword = await User.comparePassword(password, user.password);
         if (!isValidPassword) {
-            throw new Error('The Email or Password is Incorrect.');
+            return res.status(401).json({ success: false, message: 'The Email or Password is Incorrect.' });
         }
         const authenticationResult = await checkUserLogin(user);
         return res.status(200).json(authenticationResult);
     } catch (error) {
         console.log(error);
-        return res.status(401).json({
-            message: error.message
-        });
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
 };
 
@@ -171,7 +168,7 @@ const CreateUser = async (req, res) => {
         let companyAccessResults = [];
 
         for (const companyId of companies) {
-            let companyAccess = new CompanyAccess(tenantId, newUser[0].insertId, [companyId], createdBy);
+            let companyAccess = new CompanyAccess(tenantId, newUser.insertId, [companyId], createdBy);
             let companyAccessResult = await companyAccess.save();
 
             companyAccessResults.push({ companyId, companyAccessResult });
@@ -242,29 +239,36 @@ const findOneRec = async (req, res) => {
 
         let checkUser = await User.findByEmail(userEmail);
 
-        if (!checkUser[0]) {
+        if (!checkUser) {
             return res.status(404).json({ success: false, message: 'The specified User was not found.' });
         }
 
-        const userRecord = checkUser[0];
+        const userRecord = checkUser;
 
-        const userId = userRecord[0].id;
+        const userId = userRecord.id;
 
-        let [user, _] = await User.findOne(tenantId, userId);
+        let user = await User.findOne(tenantId, userId);
 
-        user[0].companyNames = user[0].companyNames ? user[0].companyNames.split(',') : [];
-        user[0].companyIds = user[0].companyIds ? user[0].companyIds.split(',').map(Number) : [];
+        user.companyNames = user.companyNames ? user.companyNames.split(',') : [];
+        user.companyIds = user.companyIds ? user.companyIds.split(',').map(Number) : [];
 
-        if (user[0].profile_image_filename) {
-            user[0].profile_image_filename = `${baseURL}${user[0].profile_image_filename}`;
+        if (user.profile_image_filename) {
+            user.profile_image_filename = `${baseURL}${user.profile_image_filename}`;
         }
 
         return res.status(200).json({
-            success: true, data: user[0]
+            success: true,
+            message: "Single Record fetched Successfully",
+            data: user
         });
 
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        res.status(500).json(
+            {
+                success: false,
+                error: error.message
+            }
+        );
     }
 };
 
@@ -276,30 +280,30 @@ const ListUser = async (req, res, next) => {
 
         if (id) {
             const user = await User.findById(tenantId, id);
-
-            if (user[0].length === 0) {
+            if (user.length === 0) {
                 return res.status(404).json({ success: false, message: 'The specified User was not found.' });
             }
 
-            return res.status(200).json({ success: true, message: 'User found', data: user[0][0] });
+            return res.status(200).json({ success: true, message: 'User found', data: user });
         }
 
         const existingTokenPayload = getDecodeToken(req)
         const companyId = existingTokenPayload.decodedToken.companyId;
 
-        const userResult = await User.findAll(token.decodedToken.tenantId);
+        let userResult = await User.findAll(token.decodedToken.tenantId);
+        // console.log(userResult);
 
-        userResult[0] = userResultSearch(q, userResult[0]);
+        userResult = userResultSearch(q, userResult);
 
         let responseData = {
             success: true,
             message: 'User list has been fetched Successfully.',
-            data: userResult[0]
+            data: userResult
         };
 
         const companyResult = await CompanyAccess.findAll(token.decodedToken.tenantId);;
         let userResponse = responseData.data;
-        let companyAccessResponse = companyResult[0];
+        let companyAccessResponse = companyResult;
 
         const userCompaniesMap = {};
 
@@ -353,29 +357,29 @@ const Activeuser = async (req, res, next) => {
         if (id) {
             const user = await User.findById(tenantId, id);
 
-            if (user[0].length === 0) {
+            if (user.length === 0) {
                 return res.status(404).json({ success: false, message: 'The specified User was not found.' });
             }
 
-            return res.status(200).json({ success: true, message: 'User found', data: user[0][0] });
+            return res.status(200).json({ success: true, message: 'User found', data: user });
         }
 
         const existingTokenPayload = getDecodeToken(req)
         const companyId = existingTokenPayload.decodedToken.companyId;
 
-        const userResult = await User.findActiveAll(token.decodedToken.tenantId);
+        let userResult = await User.findActiveAll(token.decodedToken.tenantId);
 
-        userResult[0] = userResultSearch(q, userResult[0]);
+        userResult = userResultSearch(q, userResult);
 
         let responseData = {
             success: true,
             message: 'User list has been fetched Successfully.',
-            data: userResult[0]
+            data: userResult
         };
 
         const companyResult = await CompanyAccess.findAll(token.decodedToken.tenantId);;
         let userResponse = responseData.data;
-        let companyAccessResponse = companyResult[0];
+        let companyAccessResponse = companyResult;
 
         const userCompaniesMap = {};
 
@@ -423,23 +427,23 @@ const getUserById = async (req, res, next) => {
     try {
         let userId = req.params.id;
 
-        let [user, _] = await User.findOne(tenantId, userId);
+        let user = await User.findOne(tenantId, userId);
 
         if (user.length === 0) {
             return res.status(404).json({ success: false, message: 'The specified User was not found.' });
         }
 
-        user[0].companyNames = user[0].companyNames ? user[0].companyNames.split(',') : [];
-        user[0].companyIds = user[0].companyIds ? user[0].companyIds.split(',').map(Number) : [];
+        user.companyNames = user.companyNames ? user.companyNames.split(',') : [];
+        user.companyIds = user.companyIds ? user.companyIds.split(',').map(Number) : [];
 
-        if (user[0].profile_image_filename) {
-            user[0].profile_image_filename = `${baseURL}${user[0].profile_image_filename}`;
+        if (user.profile_image_filename) {
+            user.profile_image_filename = `${baseURL}${user.profile_image_filename}`;
         }
 
         res.status(200).json({
             success: true,
             message: "User Record Successfully",
-            data: user[0]
+            data: user
         });
     } catch (error) {
         console.log(error);
@@ -533,9 +537,9 @@ const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
 
-        const [user, _] = await User.findByEmail(email);
+        const user = await User.findByEmail(email);
 
-        if (!user[0]) {
+        if (!user) {
             return res.status(404).json({
                 success: false,
                 message: 'Email not found'
@@ -565,9 +569,9 @@ const verifyOTPAndUpdatePassword = async (req, res) => {
     try {
         const { email, otp, newPassword } = req.body;
 
-        const [storedOTP, _] = await User.findOTP(email);
+        const storedOTP = await User.findOTP(email);
 
-        if (!storedOTP[0] || storedOTP[0].otp !== otp) {
+        if (!storedOTP || storedOTP.otp !== otp) {
             return res.status(401).json({
                 success: false,
                 message: 'Invalid OTP'
@@ -597,16 +601,16 @@ const changePassword = async (req, res) => {
         const { oldPassword, newPassword, confirmPassword } = req.body;
 
         const userId = req.params.id;
-        const [user, _] = await User.findById(tenantId, userId);
+        const user = await User.findById(tenantId, userId);
 
-        if (!user[0]) {
+        if (!user) {
             return res.status(404).json({
                 success: false,
                 message: 'The specified User was not found.'
             });
         }
 
-        const isValidPassword = await User.comparePassword(oldPassword, user[0].password);
+        const isValidPassword = await User.comparePassword(oldPassword, user.password);
         if (!isValidPassword) {
             return res.status(401).json({
                 success: false,
@@ -622,7 +626,7 @@ const changePassword = async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(newPassword, 8);
-        await User.updatePassword(user[0].email, hashedPassword, 0);
+        await User.updatePassword(user.email, hashedPassword, 0);
 
         return res.status(200).json({
             success: true,
@@ -644,9 +648,9 @@ const resetPassword = async (req, res) => {
         const { newPassword, confirmPassword } = req.body;
 
         const userId = req.params.id;
-        const [user, _] = await User.findById(tenantId, userId);
+        const user = await User.findById(tenantId, userId);
 
-        if (!user[0]) {
+        if (!user) {
             return res.status(404).json({
                 success: false,
                 message: 'The specified User was not found.'
@@ -661,7 +665,7 @@ const resetPassword = async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(newPassword, 8);
-        await User.updatePassword(user[0].email, hashedPassword, 1);
+        await User.updatePassword(user.email, hashedPassword, 1);
 
         return res.status(200).json({
             success: true,

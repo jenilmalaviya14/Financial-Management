@@ -4,37 +4,37 @@ const auth = require('../middlewares/auth');
 const router = express.Router();
 
 router.post(
-    "/create-role",
+    "/role/create-role",
     auth.verifyToken,
     Rolecontroller.CreateRole
 );
 
 router.get(
-    "/list-role",
+    "/role/list-role",
     auth.verifyToken,
     Rolecontroller.ListRole
 );
 
 router.get(
-    "/active-role",
+    "/role/active-role",
     auth.verifyToken,
     Rolecontroller.ActiveRole
 );
 
 router.get(
-    "/list-role/:id",
+    "/role/list-role/:id",
     auth.verifyToken,
     Rolecontroller.getRoleById
 );
 
 router.delete(
-    "/delete-role/:id",
+    "/role/delete-role/:id",
     auth.verifyToken,
     Rolecontroller.deleteRole
 );
 
 router.put(
-    "/update-role/:id",
+    "/role/update-role/:id",
     auth.verifyToken,
     Rolecontroller.updateRole
 );

@@ -9,20 +9,20 @@ const ListCompanySetting = async (req, res, next) => {
         const { q = '', id } = req.query;
 
         if (id) {
-            const companySetting = await CompanySetting.findById(id);
+            const companySetting = await CompanySetting.findById(tenantId, id);
 
-            if (companySetting[0].length === 0) {
+            if (companySetting.length === 0) {
                 return res.status(404).json({ success: false, message: 'CompanySetting not found' });
             }
 
-            return res.status(200).json({ success: true, message: 'CompanySetting found', data: companySetting[0][0] });
+            return res.status(200).json({ success: true, message: 'CompanySetting found', data: companySetting });
         }
 
         const companySettingResult = await CompanySetting.findAll(tenantId, companyId);
         let responseData = {
             success: true,
             message: 'CompanySetting list has been fetched Successfully.',
-            data: companySettingResult[0]
+            data: companySettingResult
         };
 
         responseData.data = responseData.data.map(companySetting => {
@@ -43,12 +43,12 @@ const getIdCompanySetting = async (req, res, next) => {
     const tenantId = token.decodedToken.tenantId;
     try {
         let Id = req.params.id;
-        let [companysetting, _] = await CompanySetting.findById(tenantId, Id);
+        let companysetting = await CompanySetting.findById(tenantId, Id);
 
         res.status(200).json({
             success: true,
             message: "CompanySetting Record Successfully",
-            data: companysetting[0]
+            data: companysetting
         });
     } catch (error) {
         console.log(error);
@@ -68,7 +68,7 @@ const updateCompanySetting = async (req, res, next) => {
 
         companysetting.updatedBy = userId;
 
-        let [findcompanysetting, _] = await CompanySetting.findBycompanyId(tenantId, companyId);
+        let findcompanysetting = await CompanySetting.findBycompanyId(tenantId, companyId);
         if (findcompanysetting.length > 0) {
             await companysetting.updateByCompanyId(tenantId, companyId)
         }

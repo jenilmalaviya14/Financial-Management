@@ -4,75 +4,76 @@ const router = express.Router();
 const auth = require('../middlewares/auth');
 
 router.post(
-    "/create-user",
-    UserController.CreateUser
-);
-
-router.post(
-    "/login",
+    "/user/login",
     UserController.loginUser
 );
 
+router.post(
+    "/user/create-user",
+    UserController.CreateUser
+);
+
+
 router.get(
-    "/single-record",
+    "/user/single-record",
     auth.verifyToken,
     UserController.findOneRec
 );
 
 router.get(
-    "/list-user",
+    "/user/list-user",
     auth.verifyToken,
     UserController.ListUser
 );
 
 router.get(
-    "/active-user",
+    "/user/active-user",
     auth.verifyToken,
     UserController.Activeuser
 );
 
 router.get(
-    "/list-user/:id",
+    "/user/list-user/:id",
     auth.verifyToken,
     UserController.getUserById
 );
 
 router.delete(
-    "/delete-user/:id",
+    "/user/delete-user/:id",
     auth.verifyToken,
     UserController.deleteUser
 );
 
 router.put(
-    "/update-user/:id",
+    "/user/update-user/:id",
     auth.verifyToken,
     UserController.updateUser
 );
 
 router.post(
-    "/forgot-password",
+    "/user/forgot-password",
     UserController.forgotPassword
 );
 
 router.post(
-    "/verify-password",
+    "/user/verify-password",
     UserController.verifyOTPAndUpdatePassword
 );
 
 router.post(
-    "/change-password/:id",
+    "/user/change-password/:id",
     auth.verifyToken,
     UserController.changePassword
 );
 
 router.post(
-    "/reset-password/:id",
+    "/user/reset-password/:id",
     auth.verifyToken,
     UserController.resetPassword
 );
 
 router.post(
-    "/change-company",
+    "/user/change-company",
     auth.verifyToken,
     UserController.changeCompany
 );

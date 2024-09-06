@@ -29,16 +29,16 @@ const reportTransaction = (transaction) => {
 };
 
 const ListTransactionDetails = async (req, res, next) => {
-    const tokenInfo = getDecodeToken(req);
-
-    if (!tokenInfo.success) {
-        return res.status(401).json({
-            success: false,
-            message: tokenInfo.message,
-        });
-    }
-
     try {
+        const tokenInfo = getDecodeToken(req);
+
+        if (!tokenInfo.success) {
+            return res.status(401).json({
+                success: false,
+                message: tokenInfo.message,
+            });
+        }
+
         const { q = '' } = req.query;
         const companyId = tokenInfo.decodedToken.companyId;
         const { tenantId } = tokenInfo.decodedToken;
@@ -47,7 +47,7 @@ const ListTransactionDetails = async (req, res, next) => {
         let report = await TransactionDetails.findAllTransactionDetails(tenantId, companyId, startDate, endDate, paymentTypeIds, clientTypeIds, categoryTypeIds, accountIds, groupTypeIds, accountTypeIds, subcategoryTypeIds, fromAmount, toAmount);
 
         const paymentMap = new Map();
-        report[0].forEach(transaction => {
+        report.forEach(transaction => {
             const subCategoryId = transaction.subCategoryId;
             const subCategoryName = transaction.sub_category_name;
             const PaidAmount = +(parseFloat(transaction.PaidAmount)).toFixed(2);

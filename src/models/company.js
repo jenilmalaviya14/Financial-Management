@@ -24,8 +24,8 @@ class Company {
             FROM company_master
             WHERE tenantId = '${this.tenantId}' AND email = '${this.email}'
         `;
-            const [emailCountResult] = await db.execute(checkEmailQuery);
-            const emailCount = emailCountResult[0].count;
+            const [[emailCountResult]] = await db.execute(checkEmailQuery);
+            const emailCount = emailCountResult.count;
 
             if (emailCount > 0) {
                 throw new Error("Email already exists for this tenant");
@@ -68,8 +68,8 @@ class Company {
             const result = await db.execute(sql);
 
             const InsertId = `SELECT LAST_INSERT_ID() as companyId`;
-            const [rows] = await db.execute(InsertId);
-            const companyId = rows[0].companyId;
+            const [[rows]] = await db.execute(InsertId);
+            const companyId = rows.companyId;
 
             const insertCompanySetting = `
             INSERT INTO company_setting (tenantId, companyId, default_date_option,fiscal_start_month, createdBy,createdOn, updatedBy, updatedOn)
@@ -107,7 +107,7 @@ class Company {
       `;
     }
 
-    static findAllByUserId(tenantId, userId) {
+    static async findAllByUserId(tenantId, userId) {
         let sql = `
             SELECT  c.id,
             c.company_name,
@@ -133,7 +133,8 @@ class Company {
             sql += ` AND ca.user_id = ${userId}`;
         };
         sql += " ORDER BY c.company_name";
-        return db.execute(sql);
+        const [result] = await db.execute(sql);
+        return result;
     };
 
     static findAll(tenantId) {
@@ -171,12 +172,13 @@ class Company {
         return db.execute(sql);
     };
 
-    static findActiveAll(tenantId) {
+    static async findActiveAll(tenantId) {
         let sql = this.AllCompany(tenantId)
         sql += ` AND c.status = 1`
         sql += `  ORDER BY c.company_name;`
 
-        return db.execute(sql);
+        const [result] = await db.execute(sql);
+        return result
     };
 
     static findByIdWithUserId(tenantId, id, userId) {
@@ -207,7 +209,7 @@ class Company {
         return db.execute(sql)
     };
 
-    static findById(tenantId, id) {
+    static async findById(tenantId, id) {
         let sql = `
             SELECT  c.id,
             c.company_name,
@@ -229,29 +231,30 @@ class Company {
             WHERE c.tenantId = ${tenantId}
             AND c.id=${id}
         `;
-        return db.execute(sql)
+        const [result] = await db.execute(sql);
+        return result
     };
 
     static async deleteValidation(companyId) {
-        const [clientResults] = await db.execute(`SELECT COUNT(*) AS count FROM client_master WHERE companyId = ?`, [companyId]);
+        const [[clientResults]] = await db.execute(`SELECT COUNT(*) AS count FROM client_master WHERE companyId = ?`, [companyId]);
 
-        if (clientResults[0].count > 0) {
+        if (clientResults.count > 0) {
             return false
         };
-        const [accountResults] = await db.execute(`SELECT COUNT(*) AS count FROM account_master WHERE companyId = ?`, [companyId]);
+        const [[accountResults]] = await db.execute(`SELECT COUNT(*) AS count FROM account_master WHERE companyId = ?`, [companyId]);
 
-        if (accountResults[0].count > 0) {
+        if (accountResults.count > 0) {
             return false
         };
-        const [transaction] = await db.execute(`SELECT COUNT(*) AS count FROM transaction WHERE companyId = ?`, [companyId]);
+        const [[transaction]] = await db.execute(`SELECT COUNT(*) AS count FROM transaction WHERE companyId = ?`, [companyId]);
 
-        if (transaction[0].count > 0) {
+        if (transaction.count > 0) {
             return false
         };
 
-        const [transfer] = await db.execute(`SELECT COUNT(*) AS count FROM transfer WHERE companyId = ?`, [companyId]);
+        const [[transfer]] = await db.execute(`SELECT COUNT(*) AS count FROM transfer WHERE companyId = ?`, [companyId]);
 
-        if (transfer[0].count > 0) {
+        if (transfer.count > 0) {
             return false
         };
         return true
